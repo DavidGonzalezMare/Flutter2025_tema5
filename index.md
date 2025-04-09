@@ -1,27 +1,28 @@
-﻿*Unidad 5. Construcción asíncrona de Widgets*
+﻿
+# Unitat 5. Construcción asíncrona de Widgets
 
-Unitat 5. Construcción asíncrona de Widgets
-
-![Imagen que contiene Texto
-
-Descripción generada automáticamente](Aspose.Words.7eb0c27b-429b-41e7-9ca5-8ee5b6a4eec2.001.png)
+![FutureBuilder](./images/imagen01.png)
 
 Hoy en día, la gran mayoría de aplicaciones, y especialmente las aplicaciones móviles están fuertemente integradas en la nube, y hacen uso de múltiples servicios de Internet.
 
 El trabajo con la nube implica que las aplicaciones deben estar preparadas para trabajar en entornos de naturaleza asíncrona, donde la respuesta a una petición no es inmediata. En esta unidad veremos uno de los widgets principales que hacen posible la construcción asíncrona de interfaces: **FutureBuilder**. 
 
+---
+# PENDIENTE
 No lo vamos a ver de momento, pero tenéis, en el enlace de los apuntes en valenciano, el Widget **StreamBuilder** que nos permite trabajar con secuencias de eventos asíncronos.
+--- 
 
-[1.	El Widget FutureBuilder](#_toc189988134)
+[1.	El Widget FutureBuilder](#_apartado1)
 
-[2.	Un ejemplo con FutureBuilder. Geolocalización.](#_toc189988135)
+[2.	Un ejemplo con FutureBuilder. Geolocalización.](#_apartado2)
 
-[3.	Una app del tiempo](#_toc189988136)
-
-
+[3.	Una app del tiempo](#_apartado3)
 
 
-1. # <a name="_toc189988134"></a>El Widget FutureBuilder
+
+
+# <a name="_apartado1"></a>1. El Widget FutureBuilder
+
 Hoy en día las aplicaciones, ya sean de escritorio, pero sobre todo móviles están fuertemente integradas en la nube, y hacen uso de múltiples servicios de Internet para diversos fines, como pueda ser la obtención de información o la gestión de la persistencia. El trabajo con la nube supone que las aplicaciones deben estar preparadas para trabajar en entornos de naturaleza asíncrona, donde la respuesta a una petición no es inmediata. 
 
 De las aplicaciones actuales, se espera un comportamiento fluido, que no de la sensación de bloqueo, y que permitan la interacción mientras se está esperando alguna respuesta.
@@ -29,23 +30,21 @@ De las aplicaciones actuales, se espera un comportamiento fluido, que no de la s
 Es ahí donde entran en juego los widgets que hacen posible trabajar este asincronismo.
 
 ## Asincronismo en Dart: Futures
+
 Hacemos un breve repaso sobre los *Futures* vistos en la unidad de Dart. La clase *Future* definía tipos de datos asociados a tareas asíncronas, que no se resolvían de forma inmediata, como una petición a la red o la lectura de un fichero.
 
 A modo de ejemplo, propusimos la siguiente función:
 
-Future<String> funcioAsincrona(){
-
-` `return Future.delayed(Duration(seconds: 1), (){
-
-`   `print("Estem en funcioAsincrona");
-
-`   `return 'Valor de retorn';
-
-` `});
-
+```dart
+Future<String> funcionAsincrona(){
+ return Future.delayed(Duration(seconds: 1), (){
+   print("Estamos en función Asíncrona");
+   return 'Valor de retorno';
+ });
 }
+```
 
-Esta función devuelve un objeto de tipo *Future* que, al cabo de un segundo se *resuelve* en un String. Para ello se usa el método **Future.delayed**, que realiza ciertas acciones después de una pausa de la duración indicada.
+Esta función devuelve un objeto de tipo *Future* que, al cabo de un segundo se *resuelve* en un String. Para ello se usa el método `Future.delayed`, que realiza ciertas acciones después de una pausa de la duración indicada.
 
 Hay que remarcar que el tipo devuelto es un *Future*, de manera que hay que tratarlo de manera adecuada. Para ello teníamos dos opciones:
 
@@ -53,190 +52,175 @@ Hay que remarcar que el tipo devuelto es un *Future*, de manera que hay que trat
 
 Para prepararnos para cuando se resuelve el Future hacemos uso del método *then* de esta clase, de la siguiente manera:
 
-Future<String> resposta = funcioAsincrona();
-
-resposta.then((valorResposta) => print("Resposta: $valorResposta"));
-
+```dart
+Future<String> respuesta = funcionAsincrona();
+respuesta.then((valorRespuesta) => print("Respuesta: $valorRespuesta"));
+```
 
 **Opción 2: Hacer síncrona la función asíncrona**
 
-Para ello hacíamos uso de la combinación async/await, con el fin de esperarnos a que finalizara la función asíncrona y acceder directamente al resultado. Es decir, convertimos una función asíncrona en una síncrona:
+Para ello hacíamos uso de la combinación `async/await`, con el fin de esperarnos a que finalizara la función asíncrona y acceder directamente al resultado. Es decir, convertimos una función asíncrona en una síncrona:
 
-nomFuncio() async {
-
-`  `String resposta=await funcioAsincrona();
-
-`    `print("Resposta: $valorResposta");
-
+nombreFuncion() async {
+  String respuesta=await funcioAsincrona();
+    print("Resposta: $respuesta");
 }
 
-
 ## El Widget FutureBuilder
+
 Cuando trabajamos con funciones asíncronas en Flutter, la interfaz de usuario debe responder de manera adecuada a los diferentes eventos y resultados, de manera que el comportamiento sea el esperado y no se produzcan bloqueos en la misma.
 
-El widget **FutureBuilder** nos permite crear parte de la interfaz de manera asíncrona. Se trata de un widget con estado que puede generarse a sí mismo como respuesta a algún acontecimiento asíncrono.
+El widget `FutureBuilder` nos permite crear parte de la interfaz de manera asíncrona. Se trata de un widget con estado que puede generarse a sí mismo como respuesta a algún acontecimiento asíncrono.
 
-Si hacemos uso del snippet **futureBld** veremos que este nos genera el siguiente código, en el que podemos apreciar las principales propiedades del giny:
+Si hacemos uso del snippet **futureBld** veremos que este nos genera el siguiente código, en el que podemos apreciar las principales propiedades del widget:
 
+```dart
 FutureBuilder(
-
-`  `future: Future,
-
-`  `initialData: InitialData,
-
-`  `builder: (BuildContext context, AsyncSnapshot snapshot) {
-
-`    `return ;
-
-`  `},
-
+  future: Future,
+  initialData: InitialData,
+  builder: (BuildContext context, AsyncSnapshot snapshot) {
+    return ;
+  },
 ),
+```
 
 Este constructor del widget recibe tres argumentos con nombre:
 
-- **future**: con el nombre del *Future* resultante de una operación asíncrona,
-- **initialData**: con el valor inicial para el futuro hasta que se resuelva éste, 
-- **builder**: Este es el único argumento requerido, y se trata de una función anónima que se invocará una vez se ha resuelto el Future con el fin de generar el widget. Esta función recibe el **context** y un objeto de tipo **AsyncSnapshot** con información sobre el estado del Future y su resultado si se ha completado. Esta *instantánea* contendrá, entre otros, el flag **hasData** que informa sobre la resolución del Future y de la propiedad **data**, donde se encuentra el valor al que se ha resuelto el Future. En caso de que se haya producido algún error, también disponemos del flag **haserror** para indicarlo y la propiedad **error** con la descripción del mismo.
+- `future`: con el nombre del *Future* resultante de una operación asíncrona,
+- `initialData`: con el valor inicial para el futuro hasta que se resuelva éste, 
+- `builder`: Este es el único argumento requerido, y se trata de una función anónima que se invocará una vez se ha resuelto el Future con el fin de generar el widget. Esta función recibe el `context` y un objeto de tipo `AsyncSnapshot` con información sobre el estado del Future y su resultado si se ha completado. Este `snapshot` (*instantánea*) contendrá, entre otros, el flag `hasData` que informa sobre la resolución del Future y de la propiedad `data`, donde se encuentra el valor al que se ha resuelto el Future. En caso de que se haya producido algún error, también disponemos del flag `haserror` para indicarlo y la propiedad `error` con la descripción del mismo.
 
 Vemos como haríamos uso de este widget para generar un widget para la interfaz de usuario como respuesta al resultado de la función asíncrona definida previamente:
 
-class GinyAsincron extends StatelessWidget {
+```dart
+class WidgetAsincrono extends StatelessWidget {
+  const WidgetAsincrono({super.key});
 
-`  `const GinyAsincron({super.key});
-
-`  `@override
-
-`  `Widget build(BuildContext context) {
-
-`    `return FutureBuilder(
-
-`      `future: funcioAsincrona(),
-
-`      `initialData: "Esperant resposta...",
-
-`      `builder: (BuildContext context, AsyncSnapshot snapshot) {
-
-`        `String text = "";
-
-`        `if (snapshot.hasData) text = snapshot.data.toString();
-
-`        `return Text(text);
-
-`      `},
-
-`    `);
-
-`  `}
-
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: funcioAsincrona(),
+      initialData: "Esperando respuesta...",
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        String text = "";
+        if (snapshot.hasData) text = snapshot.data.toString();
+        return Text(text);
+      },
+    );
+  }
 }
+```
 
-Como vemos, hemos creado la clase **GinyAsincron**, nos construye un **FutureBuilder**. Este **FutureBuilder** depende de la función asíncrona **FuncioAsincrona** definida previamente. Mientras ésta no se haya resuelto, el valor que contendrá **snapshot** será el que hemos asignado de manera predeterminada a **initialData**, de manera que inicialmente, el **builder** construirá el widget con este valor. Cuando el *Future* de la función asíncrona se resuelva, el valor del ***snapshot*** cambiará, cambiando el estado del FutureBuilder y forzando el redibujado del widget con el resultado. 
+Como vemos, hemos creado la clase `WidgetAsincrono`, nos construye un `FutureBuilder`. Este `FutureBuilder` depende de la función asíncrona `funcioAsincrona` definida previamente. Mientras ésta no se haya resuelto, el valor que contendrá `snapshot` será el que hemos asignado de manera predeterminada a `initialData`, de manera que inicialmente, el `builder` construirá el widget con este valor. Cuando el *Future* de la función asíncrona se resuelva, el valor del ***snapshot*** cambiará, cambiando el estado del FutureBuilder y forzando el redibujado del widget con el resultado. 
 
-De esta manera, la aplicación mostrará el texto *"Esperant resposta..."*, y al cabo de un tiempo éste cambiará a *"Valor de retorn"*, que es el que devolvía esta función.
+De esta manera, la aplicación mostrará el texto *"Esperando respuesta..."*, y al cabo de un tiempo éste cambiará a *"Valor de retorno"*, que es el que devolvía esta función.
 
-Podemos ver el resultado completo en el siguiente Gist: <https://dartpad.dev/?id=c6595a08fe6bd74f99bef457173c898c>.
+
+Podemos ver el resultado completo en el siguiente Gist: 
+[https://dartpad.dev/embed-flutter.html?id=8a37088f2339ad57bfa749ac120bec5a](https://dartpad.dev/embed-flutter.html?id=8a37088f2339ad57bfa749ac120bec5a)
+
+<iframe
+  src="https://dartpad.dev/embed-inline.html?id=8a37088f2339ad57bfa749ac120bec5a"
+  width="100%"
+  height="500px"
+  frameborder="0">
+</iframe>
 
 ### **Indicador de Progreso**
-Si no deseamos mostrar un valor inicial mientras se está esperando respuesta, podemos hacer uso de indicadores de progreso, como puedan ser los lineares **CircularProgressIndicator** o **LinearProgressIndicator**. Veámoslo con algunos ejemplos.
+
+Si no deseamos mostrar un valor inicial mientras se está esperando respuesta, podemos hacer uso de indicadores de progreso, como puedan ser los lineares `CircularProgressIndicator` o `LinearProgressIndicator`. Veámoslo con algunos ejemplos.
 
 Por ejemplo, un indicador de progreso circular:
 
-`    `return FutureBuilder(
-
-`      `future: funcioAsincrona(),
-
-`      `builder: (BuildContext context, AsyncSnapshot snapshot) {
-
-`        `if (snapshot.hasData) {
-
-`          `return Center(child: Text(snapshot.data.toString()));
-
-`        `}
-
-`        `return const CircularProgressIndicator();
-
-`      `},
-
-`    `);
+```dart
+return FutureBuilder(
+  future: funcionAsincrona(),
+  builder: (BuildContext context, AsyncSnapshot snapshot) {
+    if (snapshot.hasData) {
+      return Center(child: Text(snapshot.data.toString()));
+    }
+    return const CircularProgressIndicator();
+  },
+);
+```
 
 En este ejemplo, no utilizamos un valor inicial, pero mientras el ***snapshot*** no contenga datos, devolveremos el indicador de progreso.
 
 Este indicador suele tener un tamaño relativamente pequeño, por lo que podemos utilizar un widget de tipo *SizedBox* para rodearlo:
 
-`    `return FutureBuilder(
+```dart
+return FutureBuilder(
+  future: funcioAsincrona(),
+  builder: (BuildContext context, AsyncSnapshot snapshot) {
+    if (snapshot.hasData) {
+      return Center(child: Text(snapshot.data.toString()));
+    }
+    return const Center(
+      child: SizedBox(
+        height: 200,
+        width: 200,
+        child: CircularProgressIndicator(),
+      ),
+    );
+  },
+);
+```
 
-`      `future: funcioAsincrona(),
+El widget `LinearProgressIndicator` nos muestra un indicador de progreso lineal, en lugar de circular, y suele usarse en la parte superior del cuerpo, en lugar de centrado. Para ello, haríamos:
 
-`      `builder: (BuildContext context, AsyncSnapshot snapshot) {
+```dart
+return FutureBuilder(
+  future: funcioAsincrona(),
+  builder: (BuildContext context, AsyncSnapshot snapshot) {
+    if (snapshot.hasData) {
+      return Center(child: Text(snapshot.data.toString()));
+    }
+    // Indicador de progreso lineal, que se muestra
+    // en la parte superior del body
+     return const LinearProgressIndicator();
+  },
+);
+```
 
-`        `if (snapshot.hasData) {
 
-`          `return Center(child: Text(snapshot.data.toString()));
+Podemos ver el resultado completo en el siguiente Gist: 
+[https://dartpad.dev/embed-flutter.html?id=1e24c8784963912e6ce27c17b4a78942](https://dartpad.dev/embed-flutter.html?id=1e24c8784963912e6ce27c17b4a78942)
 
-`        `}
+<iframe
+  src="https://dartpad.dev/embed-inline.html?id=1e24c8784963912e6ce27c17b4a78942"
+  width="100%"
+  height="500px"
+  frameborder="0">
+</iframe>
 
-`        `return const Center(
-
-`          `child: SizedBox(
-
-`            `height: 200,
-
-`            `width: 200,
-
-`            `child: CircularProgressIndicator(),
-
-`          `),
-
-`        `);
-
-`      `},
-
-`    `);
-
-El giny **LinearProgressIndicator** nos muestra un indicador de progreso lineal, en lugar de circular, y suele usarse en la parte superior del cuerpo, en lugar de centrado. Para ello, haríamos:
-
-`    `return FutureBuilder(
-
-`      `future: funcioAsincrona(),
-
-`      `builder: (BuildContext context, AsyncSnapshot snapshot) {
-
-`        `if (snapshot.hasData) {
-
-`          `return Center(child: Text(snapshot.data.toString()));
-
-`        `}
-
-`        `// Indicador de progrés linial, que es mostra
-
-`        `// a la part superior del body
-
-`        `return const LinearProgressIndicator();
-
-`      `},
-
-`    `);
-
-Podemos ver ambos ejemplos en el siguiente Gist: <https://dartpad.dev/?id=94020e31698e730523da2ec9b236fb8a>.
 
 ### **ConnectionState**
-El *Snapshot* que se nos devuelve contiene más información sobre la respuesta, como por ejemplo su estado. Este estado se representa mediante el enumerado **ConnectionState**, que puede tomar los siguientes valores:
 
-- **none**: para indicar que la conexión aún no se ha iniciado, de manera que se usa **initialData**,
-- **waiting**: para indicar que ha comenzado la operación asíncrona, y probablemente el contenido de los datos del *Snaphot* sean nulas.
-- **active**: para indicar que el snaphot contiene datos válidos (no nulos), y probablemente cambiantes con el tiempo.
-- done: para indicar que el *Snapshot* contiene datos y estos no son nulos.
+El *Snapshot* que se nos devuelve contiene más información sobre la respuesta, como por ejemplo su estado. Este estado se representa mediante el enumerado `ConnectionState`, que puede tomar los siguientes valores:
+
+- `none`: para indicar que la conexión aún no se ha iniciado, de manera que se usa `initialData`,
+- `waiting`: para indicar que ha comenzado la operación asíncrona, y probablemente el contenido de los datos del *Snaphot* sean nulas.
+- `active`: para indicar que el snaphot contiene datos válidos (no nulos), y probablemente cambiantes con el tiempo.
+- `done`: para indicar que el *Snapshot* contiene datos y estos no son nulos.
 
 Veamos de nuevo el ejemplo incluyendo la comprobación de este estado:
 
 Este código nos mostrará el estado *ConnectionState.Waiting* hasta que se reciba la respuesta. Cuando tengamos la respuesta, mostraremos el estado *Done* y el resultado de la misma.
 
-Si reemplazamos la obtención del future per **future:null** (la línea comentada y comentamos la línea **future:funcioAsincrona()**), veremos que el estado se nos muestra como **None**, ya que no iniciamos la conexión en ningún momento.
+Si reemplazamos la obtención del future per `future:null` (la línea comentada y comentamos la línea `future:funcioAsincrona()`), veremos que el estado se nos muestra como `None`, ya que no iniciamos la conexión en ningún momento.
 
-Podéis probarlo en el siguiente Gist: <https://dartpad.dev/?id=01078c2d8163205d5195a54f625921a6>.
+Podemos ver el resultado completo en el siguiente Gist: 
+[https://dartpad.dev/embed-flutter.html?id=d1447b56b5c46d0ca2fabb45d964bf3f](https://dartpad.dev/embed-flutter.html?id=d1447b56b5c46d0ca2fabb45d964bf3f)
+
+<iframe
+  src="https://dartpad.dev/embed-inline.html?id=d1447b56b5c46d0ca2fabb45d964bf3f"
+  width="100%"
+  height="500px"
+  frameborder="0">
+</iframe>
 
 
-1. # <a name="_toc189988135"></a>Un ejemplo con FutureBuilder. Geolocalización.
+# <a name="_apartado2"></a>2. Un ejemplo con FutureBuilder. Geolocalización.
 
 La gran mayoría de recursos y servicios se ofrecen de forma asíncrona. En este apartado veremos, a modo de ejemplo la librería **geolocator**, que sirve para obtener la ubicación actual del dispositivo.
 ## La librería geolocator
