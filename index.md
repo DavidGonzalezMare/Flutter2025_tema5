@@ -223,42 +223,49 @@ Podemos ver el resultado completo en el siguiente Gist:
 # <a name="_apartado2"></a>2. Un ejemplo con FutureBuilder. Geolocalización.
 
 La gran mayoría de recursos y servicios se ofrecen de forma asíncrona. En este apartado veremos, a modo de ejemplo la librería **geolocator**, que sirve para obtener la ubicación actual del dispositivo.
+
 ## La librería geolocator
+
 El repositorio [pub.dev](https://pub.dev/) contiene todos los paquetes oficiales para Dart y Flutter. Existen varios plugins de este repositorio que nos permiten obtener la ubicación del dispositivo desde nuestro código. Uno de ellos es [el plugin *geolocator*](https://pub.dev/packages/geolocator).
 
-![Texto
-
-Descripción generada automáticamente con confianza media](Aspose.Words.7eb0c27b-429b-41e7-9ca5-8ee5b6a4eec2.002.png)
+![Geolocator](./images/imagen02.png)
 
 El repositorio [pub.dev](https://pub.dev/) nos ofrece para cada paquete información diversa que es interesante conocer.
 
 Tal y como podemos ver en la imagen de arriba, aparte del nombre del paquete y su versión, se nos muestra otra información que conviene tener en cuenta antes de utilizar un paquete:
 
+---
+
 - Nos muestra una etiqueta (Null Safety) si la librería está escrita con el sistema de tipo *null safety* de Dart (a partir de la versión 2.12 del lenguaje). Esto no significa que sus funciones retornen siempre valores no nulos, sino que, se indica explícitamente cuando una función puede devolver un tipo potencialmente nulo (¿con Tipo?). Por ejemplo, algunas funciones de esta librería pueden devolver un tipo null cuando no se es capaz de determinar la ubicación.
-- Para qué SDK está creada (Flutter),
-- Para qué plataformas es compatible (en este caso: Android, iOS, MacOS, Web y Windows). Para Linux, habría que incorporar también la librería [geolocator_linux](https://pub.dev/packages/geolocator_linux).
+  
+- Para que SDK está creada (Flutter),
+- Para que plataformas es compatible (en este caso: Android, iOS, MacOS, Web y Windows). Para Linux, habría que incorporar también la librería [geolocator_linux](https://pub.dev/packages/geolocator_linux).
+
+---
 
 El paquete *Geolocator* nos proporciona acceso a la ubicación haciendo uso de los servicios de localización específicos de la plataforma. Por este motivo, deberemos realizar una configuración específica para habilitar los servicios de geolocalización.
 
 ### **Instalación**
+
 Con el fin de instalar el paquete *Geolocator* lo añadimos como dependencia con la orden:
 
+```
 flutter pub add geolocator
+```
 
 Esto nos añadirá al fichero de configuración pubspec.yaml la dependencia:
 
+```yaml
 dependencies:
+  ...
+  geolocator: ^11.0.0
+```
 
-`  `flutter:
-
-`    `sdk: flutter
-
-`  `geolocator: ^13.0.2
-
-Recuerdad que los paquetes descargados no se almacenan en nuestro proyecto, sino en un recurso compartido por todos los proyectos en nuestra carpeta de usuario.
+Recordad que los paquetes descargados no se almacenan en nuestro proyecto, sino en un recurso compartido por todos los proyectos en nuestra carpeta de usuario.
 
 ### **Configuración para Android**
-Dado que el plugin **geolocator** es un paquete que contiene una implementación por plataforma, deberemos adaptar el proyecto específico de cada una de ellas. En la web del plugin en el repositorio tenemos los pasos a seguir para las diferentes plataformas soportadas de forma oficial.
+
+Dado que el plugin `geolocator` es un paquete que contiene una implementación por plataforma, deberemos adaptar el proyecto específico de cada una de ellas. En la web del plugin en el repositorio tenemos los pasos a seguir para las diferentes plataformas soportadas de forma oficial.
 
 En nuestro caso, adaptaremos el proyecto de Android, situado en la carpeta *android de* nuestro proyecto Flutter.
 
@@ -266,304 +273,228 @@ Los pasos a realizar para la adaptación son los siguientes:
 
 1. Comprobamos que el fichero *android/gradle.properties* está configurado para utilizar las librerías de Jetpack (AndroidX), añadiendo, si no existieran las siguientes líneas: 
 
+```
 android.useAndroidX=true
-
 android.enableJetifier=true
+```
 
-1. Modificamos el fichero *android/app/src/main/AndroidManifest.xml* con el fin de indicar que la aplicación requerirá del usuario para que le otorgue permiso para acceder a los servicios de geolocalización. Para ello, incorporaremos como hijos directos de la etiqueta **manifest** las siguientes líneas:
+2. Modificamos el fichero *android/app/src/main/AndroidManifest.xml* con el fin de indicar que la aplicación requerirá del usuario para que le otorgue permiso para acceder a los servicios de geolocalización. Para ello, incorporaremos como hijos directos de la etiqueta `manifest` las siguientes líneas:
 
+```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-`    `<uses-permission android:name="android.permission.ACCESS\_FINE\_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Per obtindre la ubicació en temps real encara que l'app estiga en segon pla -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
-`    `<uses-permission android:name="android.permission.ACCESS\_COARSE\_LOCATION" />
 
-`    `<!-- Per obtindre la ubicació en temps real encara que l'app estiga en segon pla -->
+    <application ...
+```
 
-`    `<uses-permission android:name="android.permission.ACCESS\_BACKGROUND\_LOCATION" />
+Android ofrece dos niveles de precisión para la ubicación: **aproximada**, con una estimación precisa en unos 3 kilómetros cuadrados, y **precisa**, con un margen de error de pocos metros. El permiso `ACCESS_COARSE_LOCATION` hace referencia a la ubicación aproximada, mientras que `ACCESS_FINE_LOCATION` hace referencia a la ubicación precisa.
 
-`    `<application…
-
-Android ofrece dos niveles de precisión para la ubicación: **aproximada**, con una estimación precisa en unos 3 kilómetros cuadrados, y **precisa**, con un margen de error de pocos metros. El permiso ACCESS\_COARSE\_LOCATION hace referencia a la ubicación aproximada, mientras que ACCESS\_FINE\_LOCATION hace referencia a la ubicación precisa.
-
-Por otro lado, a partir de Android 10, es necesario incluir el permiso ACCESS\_BACKGROUND\_LOCATION, con el fin de recibir actualizaciones de la ubicación mientras la aplicación se está ejecutando en segundo plano.
+Por otro lado, a partir de Android 10, es necesario incluir el permiso `ACCESS_BACKGROUND_LOCATION`, con el fin de recibir actualizaciones de la ubicación mientras la aplicación se está ejecutando en segundo plano.
 
 ## Utilización de la librería
-Una vez tenemos la librería configurada en el proyecto ya podemos hacer uso de ella en nuestras aplicaciones. Para ello, lo primero que debemos hacer es importar la librería en nuestros ficheros *dart*, con la declaración importe correspondiente, indicando el paquete y el fichero a importar:
 
+Una vez tenemos la librería configurada en el proyecto ya podemos hacer uso de ella en nuestras aplicaciones. Para ello, lo primero que debemos hacer es importar la librería en nuestros ficheros *dart*, con la declaración `import` correspondiente, indicando el paquete y el fichero a importar:
+
+```dart
 import 'package:geolocator/geolocator.dart';
+```
 
 Una vez tenemos la librería importada, podemos utilizar la clase *Geolocator* para obtener información relativa a la geolocalización. 
 
 Entre las diferentes funcionalidades que nos ofrece, encontramos:
 
-- **Geolocator.isLocationServiceEnabled()**: Función asíncrona que indica si el servicio de geolocalización está activo.
-- **Geolocator.checkPermission()**: Comprueba si se tienen permisos de acceso al servicio de geolocalización. Los permisos pueden ser: 
-  - **LocationPermission.always**: El permiso está concedido incluso cuando la app está ejecutándose en segundo plano.
-  - **LocationPermission.denied**: El permiso no está concedido, pero se puede pedir acceso al usuario.
-  - **LocationPermission.deniedForever**: El permiso está denegado de manera persistente, de manera que no pide acceso al usuario. Si se desea modificar el permiso debe hacerse desde la configuración de la aplicación. 
-  - **LocationPermission.unableToDetermine**: No se ha podido saber el estado de los permisos sobre geolocalización. Sólo será aplicable a entornos web.
-- **Geolocator.requestPermission()**: Muestra el diálogo del sistema para pedir permiso al usuario sobre la geolocalización. 
-- **Geolocator.getCurrentPosition()**: Devuelve de manera asíncrona la posición actual proporcionada por el servicio de geolocalización, con sus respectivas coordenadas de latitud y longitud.
-- **Geolocator.getLastKnownPosition()**: Devuelve de manera asíncrona la última posición conocida almacenada en el dispositivo. Cuando no hay ninguna posición disponible, se devuelve *null*.
+- `Geolocator.isLocationServiceEnabled()`: Función asíncrona que indica si el servicio de geolocalización está activo.
+  
+- `Geolocator.checkPermission()`: Comprueba si se tienen permisos de acceso al servicio de geolocalización. Los permisos pueden ser: 
+  - `LocationPermission.always`: El permiso está concedido incluso cuando la app está ejecutándose en segundo plano.
+  
+  - `LocationPermission.denied`: El permiso no está concedido, pero se puede pedir acceso al usuario.
+  - `LocationPermission.deniedForever`: El permiso está denegado de manera persistente, de manera que no pide acceso al usuario. Si se desea modificar el permiso debe hacerse desde la configuración de la aplicación. 
+  - `LocationPermission.unableToDetermine`: No se ha podido saber el estado de los permisos sobre geolocalización. Sólo será aplicable a entornos web.
+- `Geolocator.requestPermission()`: Muestra el diálogo del sistema para pedir permiso al usuario sobre la geolocalización. 
+- `Geolocator.getCurrentPosition()`: Devuelve de manera asíncrona la posición actual proporcionada por el servicio de geolocalización, con sus respectivas coordenadas de latitud y longitud.
+- `Geolocator.getLastKnownPosition()`: Devuelve de manera asíncrona la última posición conocida almacenada en el dispositivo. Cuando no hay ninguna posición disponible, se devuelve *null*.
 
 Finalmente, dado que el paquete contiene código específico de la plataforma, deberemos recompilar y reiniciar la aplicación, ya que un *hot reload* o *hot restart* solo afecta al código Dart.
 
-Pasamos ahora a ver el código que nos implementa la funcionalidad para obtener la ubicación. Para ello, implementamos en el fichero **lib/services/geolocation\_service.dart** la clase **GeolocationService**, que implementará el método **determinaPosicio()**. 
+Pasamos ahora a ver el código que nos implementa la funcionalidad para obtener la ubicación. Para ello, implementamos en el fichero `lib/services/geolocation_service.dart` la clase `GeolocationService`, que implementará el método `determinaPosicio()`. 
 
 **La carpeta services**
 
-Cuando nuestras aplicaciones hacen uso de servicios con cierta funcionalidad específica, es habitual crear una carpeta específica para ellos, llamada **services**. Ésta contiene clases con métodos que proporcionan características especializadas. Podemos encontrar servicios de acceso a API, de almacenamiento o de acceso a medios, por ejemplo. 
+Cuando nuestras aplicaciones hacen uso de servicios con cierta funcionalidad específica, es habitual crear una carpeta específica para ellos, llamada `services`. Ésta contiene clases con métodos que proporcionan características especializadas. Podemos encontrar servicios de acceso a API, de almacenamiento o de acceso a medios, por ejemplo. 
 
 Los servicios nos ayudan a mantener un código relativamente limpio y separar funcionalidad, abstrayendo las funcionalidades obtenidas de fuentes de terceros, y reduciendo la dependencia.
 
-En este caso, lo que hacemos es ofrecer un servicio de geolocalización que hace uso de la librería **geolocator**. Si en un futuro se cambiara de librería, sólo habría que modificar esta clase de servicio.
+En este caso, lo que hacemos es ofrecer un servicio de geolocalización que hace uso de la librería `geolocator`. Si en un futuro se cambiara de librería, sólo habría que modificar esta clase de servicio.
 
-Pues bien, este método **determinaPosicio** de la clase **GeolocationService** hace uso de la librería **geolocator** y se encarga de comprobar y solicitar los permisos correspondientes al usuario. Observemos los comentarios al código para entender mejor su funcionamiento:
+Pues bien, este método `determinaPosicion` de la clase `GeolocationService` hace uso de la librería `geolocator` y se encarga de comprobar y solicitar los permisos correspondientes al usuario. Observemos los comentarios al código para entender mejor su funcionamiento:
+
+```dart
+import 'package:geolocator/geolocator.dart';
 
 class GeolocationService {
+  static Future<Position?> determinaPosicion() async {
 
-`  `static Future<Position?> determinaPosicio() async {
+    //  Declaración de variables
+    bool serviceEnabled;
+    LocationPermission permission;
 
-`    `//  Declaració de variables
+    // Comprobamos que el servicio de geolocalitazción esté en funcionamiento
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
-`    `bool serviceEnabled;
+    if (!serviceEnabled) {
+      // Si el servicio de geolocalitzación no está activo, devolvermos un error 
+      // para informar al usuario. Para ello hacemos uso de Future.error
+      return Future.error('El servicio de geolocalitzación está desactivado');
+    }
 
-`    `LocationPermission permission;
+    // En caso que el servicio esté en funcionamiento, comprobamos los permisos:
+    permission = await Geolocator.checkPermission();
 
-`    `// Comprovem que el servei de geolocalitazció estiga en funcionament
+    // Si no tenemos permisos...
+    if (permission == LocationPermission.denied) {
+      // Pedimos permiso al usuiaro (observemos que utilizamos await
+      // para esperar que el usuario conceda explícitamente el permiso)
 
-`    `serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      permission = await Geolocator.requestPermission();
 
-`    `if (!serviceEnabled) {
+      // Si el usuario no ha concedido el permiso...
+      if (permission == LocationPermission.denied) {
+        // Se devuelve un error indicando que no se tienen
+        // permisos para obtenir la ubicación. La próxima vez
+        // que se lance la aplicación se volverá a preguntar
 
-`      `// Si el servei de geolocalització no és actiu, retornem un error 
+        return Future.error(
+            'No se tienen permisos para acceder a la ubicación');
+      }
+    }
 
-`      `// per informar a l'usuari. Fem ús de Future.error per a això
+    // Si los permisos se han denegados de forma permanente
+    // lanzamos otro error:
 
-`      `return Future.error('El servei de geolocalització està desactivat');
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error('''El acceso a la ubicación del dispositivopor parte de la 
+  aplicación se ha dengado de manera persistente.\n Si queréis modificar 
+  el permiso, podéis hacerlo desde la configuración de la aplicación''');
+    }
 
-`    `}
-
-`    `// En cas que el servei estiga en funcionament, comprovem els permisos:
-
-`    `permission = await Geolocator.checkPermission();
-
-`    `// Si no tenim permisos...
-
-`    `if (permission == LocationPermission.denied) {
-
-`      `// Demanem permís a l'usuari (observeu que fem ús de l'await
-
-`      `// per esperar-nos que l'usuari concedisca explícitament el permís)
-
-`      `permission = await Geolocator.requestPermission();
-
-`      `// Si l'usuari no ha concedit el permís...
-
-`      `if (permission == LocationPermission.denied) {
-
-`        `// Es retorna un error indicant que no es tenen 
-
-`        `// permisos per obtenir la ubicació. La propera vegada
-
-`        `// que es llance l'aplicació es tornaran a preguntar
-
-`        `return Future.error(
-
-`            `'No es disposa de permisos per accedir a la ubicació');
-
-`      `}
-
-`    `}
-
-`    `// Si els permisos estan denegats de forma permanent, 
-
-`    `// llancem un altre error:
-
-`    `if (permission == LocationPermission.deniedForever) {
-
-`      `return Future.error('''L'accés a la ubicació del dispositiu per part de 
-
-`  `l'aplicació està denegat de manera persistent.\n Si desitgeu modificar 
-
-`  `el permís, podeu fer-ho des de la configuració de l'aplicació''');
-
-`    `}
-
-`    `// Finalment, si tenim accés a la geolocalització, retornem aquesta:
-
-`    `return await Geolocator.getCurrentPosition();
-
-`  `}
-
+    // Finalmente, si tenemos acceso a la geolocalitzación, la devolvemos:
+    return await Geolocator.getCurrentPosition();
+  }
 }
+```
 
-Observemos que este método se declara como **static Future<Position?>**, lo que quiere decir que devuelve un tipo *Future* que se resolverá a un tipo *Position*. Este tipo **Position** está definido también en la librería *geolocator*, y representa una posición con su latitud y longitud.
+Observemos que este método se declara como `static Future<Position?>`, lo que quiere decir que devuelve un tipo *Future* que se resolverá a un tipo *Position*. Este tipo `Position` está definido también en la librería *geolocator*, y representa una posición con su latitud y longitud.
 
 Sin embargo, lo que nos interesa es cómo tratar este *Future* que se nos devuelve y cómo dibujar el widget correspondiente. Para ello haremos uso de un widget *FutureBuilder* que dependerá de este *Future* para redibujarse.
 
-Este widget se define en el fichero **lib/widgets/mostrar\_coordenades.dart** tendrá la siguiente estructura:
+Este widget se define en el fichero `lib/widgets/mostrar_coordenadas.dart` tendrá la siguiente estructura:
 
-class WidgetMostraCoordenades extends StatelessWidget {
+```dart
+class WidgetMuestraCoordenadas extends StatelessWidget {
+  const WidgetMuestraCoordenadas({super.key});
 
-`  `const WidgetMostraCoordenades({super.key});
-
-`  `@override
-
-`  `Widget build(BuildContext context) {
-
-`    `return FutureBuilder(
-
-`      `future: GeolocationService.determinaPosicio(),
-
-`      `builder: (BuildContext context, AsyncSnapshot snapshot) {
-
-`        `// ...
-
-`        `// Codi de construcció del giny
-
-`        `// ...
-
-`      `},
-
-`    `);
-
-`  `}
-
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: GeolocationService.determinaPosicion(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        // ...
+        // Codigo de construcción del widget
+        // ...
+      },
+    );
+  }
 }
+```
 
-Como vemos, el método **build** de este widget para mostrar las coordenadas crea un *FutureBuilder* que depende del resultado del método **GeolocationService.determinaPosicio()**.
+Como vemos, el método `build` de este widget para mostrar las coordenadas crea un *FutureBuilder* que depende del resultado del método `GeolocationService.determinaPosicion()`.
 
 **Abriendo Google Maps**
 
 Para abrir Google Maps desde nuestra aplicación, haremos uso del complemento [*maps_launcher*](https://pub.dev/packages/maps_launcher). Para ello, al proyecto hemos añadido éste con:
 
-flutter pub add maps\_launcher
+```
+flutter pub add maps_launcher
+```
 
 Y después, importarlo al fichero correspondiente con:
 
-import 'package:maps\_launcher/maps\_launcher.dart';
+```
+import 'package:maps_launcher/maps_launcher.dart';
+```
 
-Una vez importado, podremos hacer uso del método **MapsLauncher.launchCoordinates(latitud, longitud)**, que nos abre la aplicación de Google Maps con la ubicación correspondiente.
+Una vez importado, podremos hacer uso del método `MapsLauncher.launchCoordinates(latitud, longitud)`, que nos abre la aplicación de Google Maps con la ubicación correspondiente.
 
-Veamos ahora cuál es el contenido del componente **builder** de este widget:
+Veamos ahora cuál es el contenido del componente `builder` de este widget:
 
+```dart
 builder: (BuildContext context, AsyncSnapshot snapshot) {
+  String text = "";
+  double latitud = 0.0;
+  double longitud = 0.0;
 
-`  `String text = "";
+  // Cuando el estado de la petición al servicio indica que ha finalizado
+  if (snapshot.connectionState == ConnectionState.done) {
+    // Comprobamos si tiene errores
+    if (snapshot.hasError) {
+      debugPrint(snapshot.error.toString());
+      text = "Error: ${snapshot.error.toString()}";
+    } else if (snapshot.hasData) {
+      // O si contiene datos. En este caso la longitud y la latitud
+      // y el texto para mostrarlas:
+      latitud = snapshot.data.latitude ?? 0.0;
+      longitud = snapshot.data.longitude ?? 0.0;
+      text = "Ubicación actual: ($latitud, $longitud)";
+    }
 
-`  `double latitud = 0.0;
+    // Y creamos el widget, que mostrará centrado este texto
+    // y un botón para abrir Google Maps.
 
-`  `double longitud = 0.0;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(text),
+          ElevatedButton(
+              onPressed: () async {
+                try {
+                  await MapsLauncher.launchCoordinates(latitud, longitud);
+                } catch (err) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text("No se ha encontrado una aplicación de mapas"),
+                    ),
+                  );
+                }
+              },
+              child: const Text("Abre la ubicación"))
+        ],
+      ),
+    );
+  } else {
+    // Mientras no finalice la petición al servicio, muestra
+    // el indicador de progreso
 
-`  `// Quan l'estat de la petició al servei indique que ha finalitzat
-
-`  `if (snapshot.connectionState == ConnectionState.done) {
-
-`    `// Comprovem si té errors
-
-`    `if (snapshot.hasError) {
-
-`      `debugPrint(snapshot.error.toString());
-
-`      `text = "Error: ${snapshot.error.toString()}";
-
-`    `} else if (snapshot.hasData) {
-
-`      `// O si conté dades. En aquest cas, la longitud i la latitud
-
-`      `// i el text per mostrar-les:
-
-`      `latitud = snapshot.data.latitude ?? 0.0;
-
-`      `longitud = snapshot.data.longitude ?? 0.0;
-
-`      `text = "Ubicació actual: ($latitud, $longitud)";
-
-`    `}
-
-`    `// I creem el giny, que mostrarà centrat aquest text
-
-`    `// i un botó per obrir Google Maps.
-
-`    `return Center(
-
-`      `child: Column(
-
-`        `mainAxisAlignment: MainAxisAlignment.center,
-
-`        `children: [
-
-`          `Text(text),
-
-`          `ElevatedButton(
-
-`              `onPressed: () async {
-
-`                      `try {
-
-`                        `await MapsLauncher.launchCoordinates(latitud, longitud);
-
-`                      `} catch (err) {
-
-`                        `ScaffoldMessenger.of(context).showSnackBar(
-
-`                          `const SnackBar(
-
-`                            `content:
-
-`                                `Text("No s'ha trobat una aplicació de mapes"),
-
-`                          `),
-
-`                        `);
-
-`                      `}
-
-`                    `},
-
-`              `child: const Text("Obre la ubicació"))
-
-`        `],
-
-`      `),
-
-`    `);
-
-`  `} else {
-
-`    `// Mentre no finalitze la petició al servei, mostrem
-
-`    `// l'indicador de progrés
-
-`    `return const Center(
-
-`      `child: SizedBox(
-
-`        `width: 200,
-
-`        `height: 200,
-
-`        `child: CircularProgressIndicator(),
-
-`      `),
-
-`    `);
-
-`  `}
-
+    return const Center(
+      child: SizedBox(
+        width: 200,
+        height: 200,
+        child: CircularProgressIndicator(),
+      ),
+    );
+  }
 },
+```
 
-Como vemos, en primer lugar, se hacen varias comprobaciones sobre la respuesta de la función asíncrona mediante el **snapshot** que recibimos como argumento. Con **snapshot.connectionState** comprobamos el estado de la respuesta. Cuando este es **ConnectionState.done** significa que ya hemos obtenido la respuesta, de manera que comprobamos si se ha producido algún error (con **snapshot.hasError**), y si este **snapshot** contiene datos. En caso de que contenga información, se construye el mensaje para mostrar a partir de esta información y se devuelve en un widget de tipo Texto centrado. Mientras se esté esperando respuesta, lo que se dibujará es un indicador de progreso circular.
+Como vemos, en primer lugar, se hacen varias comprobaciones sobre la respuesta de la función asíncrona mediante el `snapshot` que recibimos como argumento. Con `snapshot.connectionState` comprobamos el estado de la respuesta. Cuando este es `ConnectionState.done` significa que ya hemos obtenido la respuesta, de manera que comprobamos si se ha producido algún error (con `snapshot.hasError`), y si este `snapshot` contiene datos. En caso de que contenga información, se construye el mensaje para mostrar a partir de esta información y se devuelve en un widget de tipo Texto centrado. Mientras se esté esperando respuesta, lo que se dibujará es un indicador de progreso circular.
 
-En el caso que estuviéramos utilizando algún emulador por ejemplo de Genymotion necesitamos cumplir ciertos requisitos y preparar el emulador:
-
-<http://joamuran.net/flutter_2024/u5/5.2.gps/#preparacio-de-genymotion-per-utilitzar-la-geolocalitzacio>
-
-Tenemos también una serie de posibles errores que podemos tener al ejecutar la app:
-
-http://joamuran.net/flutter\_2024/u5/5.2.gps/#errors-frequents
 
 
 1. # <a name="_toc189988136"></a>Una app del tiempo
