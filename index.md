@@ -497,7 +497,7 @@ Como vemos, en primer lugar, se hacen varias comprobaciones sobre la respuesta d
 
 
 
-1. # <a name="_toc189988136"></a>Una app del tiempo
+# <a name="_apartado3"></a>3. Una app del tiempo
 
 En este apartado vamos a ver cómo podríamos hacer una aplicación que nos proporcione información sobre el tiempo en la ubicación del dispositivo.
 
@@ -508,594 +508,451 @@ Para obtener la información meteorológica utilizaremos la API de *OpenMeteo*, 
 El funcionamiento de la aplicación será sencillo. En primer lugar, determinamos la ubicación del dispositivo y la proporcionaremos al widget que construye la interfaz, que hará uso de la API de OpenMeteo para obtener la información meteorológica. En el momento que recibamos esta información, construiremos el widget que la muestra.
 
 ## Creación y configuración del proyecto
+
 En primer lugar, creamos el proyecto, y añadimos las librerías que necesitamos: *geolocator* y *http*:
 
+```
 flutter pub add http geolocator
+```
 
 A continuación, configuramos el *Geolocator* para Android:
 
 1. Comprobamos que el fichero *android/gradle.properties* contiene las siguientes líneas:
 
+```kotlin
 android.useAndroidX=true
-
 android.enableJetifier=true
+```
 
-1. Modificamos el fichero *android/app/src/main/AndroidManifest.xml* para configurar los permisos necesarios:
+2. Modificamos el fichero *android/app/src/main/AndroidManifest.xml* para configurar los permisos necesarios:
 
+```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-`    `<uses-permission android:name="android.permission.ACCESS\_FINE\_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
-`    `<uses-permission android:name="android.permission.ACCESS\_COARSE\_LOCATION" />
-
-`    `<uses-permission android:name="android.permission.ACCESS\_BACKGROUND\_LOCATION" />
-
-`    `<application…
-
+    <application ...
+```
 
 
 ## Función para obtener la posición
-El primer código que vamos a generar será una función para obtener la posición del dispositivo. Para ello, crearemos el fichero **lib/services/geolocation\_service.dart**, con la clase **GeolocationService** y el método estático **determina\_posicio()**, que será una adaptación del método con el mismo nombre que hemos trabajado en el apartado anterior, y que hace uso de la librería *geolocator* para obtener las coordenadas GPS actuales. Esta función nos devolverá ya un diccionario con la latitud y la longitud.
 
+El primer código que vamos a generar será una función para obtener la posición del dispositivo. Para ello, crearemos el fichero `lib/services/geolocation_service.dart`, con la clase `GeolocationService` y el método estático `determinaPosicion()`, que será una adaptación del método con el mismo nombre que hemos trabajado en el apartado anterior, y que hace uso de la librería *geolocator* para obtener las coordenadas GPS actuales. Esta función nos devolverá ya un Position con la latitud y la longitud.
+
+```dart
 import 'package:geolocator/geolocator.dart';
 
 class GeolocationService {
+  static Future<dynamic?> determinaPosicion() async {
 
-`  `static Future<dynamic> determinaPosicio() async {
+    ...
+    // Código para comprobar el servicio de geolocalización y los permisos 
+    ...
 
-`    `// Codi per comprovar el servei de geolocalització i els permisos (omès)
+    // Finalmente, si tenemos acceso a la geolocalitzación, la devolvemos:
+    Position pos = await Geolocator.getCurrentPosition();
 
-`    `// ...
-
-`    `// Accés a la posició actual i retornem el diccionari
-
-`    `Position pos = await Geolocator.getCurrentPosition();
-
-`    `return Map.from({"latitud": pos.latitude, "longitud": pos.longitude});
-
-`  `}
-
+    return Map.from({"latitud": pos.latitude, "longitud": pos.longitude});
+ }
 }
+```
 
 ## Obtención del tiempo
+
 La API de *OpenMeteo*, como hemos comentado nos proporciona información meteorológica de un lugar concreto a partir de sus coordenadas geográficas. Un aspecto interesante de este servicio es que, a diferencia de la mayoría, no requiere ninguna clave ni registro previo para utilizarlo.
 
 La API puede atender a varios formatos de URL. Pero la que nos interesa tiene una forma parecida a ésta:
 
-https://api.open-meteo.com/v1/forecast?latitude=38.9675925&longitude=-0.1803423&current\_weather=true
+```
+https://api.open-meteo.com/v1/forecast?latitude=38.9675925&longitude=-0.1803423&current_weather=true
+```
 
-Como vemos, la API se encuentra en la dirección **https://api.open-meteo.com/v1/**, y concretamente, accedimos al recurso **forecast**, proporcionándole la latitud, la longitud, un parámetro **current\_weather**, para indicar que lo que queremos es el tiempo actual.
+Como vemos, la API se encuentra en la dirección `https://api.open-meteo.com/v1/`, y concretamente, accedimos al recurso `forecast`, proporcionándole la latitud, la longitud, un parámetro current_weather, para indicar que lo que queremos es el tiempo actual.
 
 Podéis probar a copiar esta dirección en un navegador web, para ver cómo es la respuesta. Ésta tendrá la forma:
 
+```xml
 {
+   "latitude":38.97,
+   "longitude":-0.1800003,
+   "generationtime_ms":0.558018684387207,
+   "utc_offset_seconds":0,
+   "timezone":"GMT",
+   "timezone_abbreviation":"GMT",
+   "elevation":29.0,
+   "current_weather":{
+      "temperature":6.2,
+      "windspeed":9.9,
+      "winddirection":280.0,
+      "weathercode":51,
+      "time":"2023-01-29T09:00"
+   }
+}
+```
+Lo que nos interesará son los datos que se encuentran en `current_weather`: temperatura, velocidad del viento, dirección del viento y código del tiempo.
 
-`   `"latitude":38.97,
+Para obtener esta información, crearemos un nuevo servicio. Concretamente la clase `WeatherService`, en el fichero `lib/services/weather_service.dart`. Esta clase implementará el método estático `obtenerClima` que realiza la petición correspondiente al servicio y devuelve esta información en forma de Future (`Future<dynamic>`).
 
-`   `"longitude":-0.1800003,
+```dart
+import 'dart:io';
+import 'dart:convert'; // Para realizar conversiones entre tipos de datos
+import 'package:http/http.dart' as http; // Para realizar peticiones HTTP
 
-`   `"generationtime\_ms":0.558018684387207,
+class WeatherService {
+  static Future<dynamic> obtenerClima(
+      {required double longitud, required double latitud}) async {
+    String url =
+        'https://api.open-meteo.com/v1/forecast?latitude=$latitud&longitude=$longitud&current_weather=true';
 
-`   `"utc\_offset\_seconds":0,
+    // Lanzamos una petición GET mediante el método http.get, y esperamos a la respuesta
+    http.Response response = await http.get(Uri.parse(url));
 
-`   `"timezone":"GMT",
+    if (response.statusCode == HttpStatus.ok) {
+      // Descodificamos la respuesta
+      String body = utf8.decode(response.bodyBytes);
+      final result = jsonDecode(body);
 
-`   `"timezone\_abbreviation":"GMT",
-
-`   `"elevation":29.0,
-
-`   `"current\_weather":{
-
-`      `"temperature":6.2,
-
-`      `"windspeed":9.9,
-
-`      `"winddirection":280.0,
-
-`      `"weathercode":51,
-
-`      `"time":"2023-01-29T09:00"
-
-`   `}
-
+      // Y la devolvemos
+      return result;
+    } else {
+      // Si no carga, lanzamos una excepción
+      throw Exception('No se ha podido conectar');
+    }
+  }
 }
 
-Lo que nos interesará son los datos que se encuentran en **current\_weather**: temperatura, velocidad del viento, dirección del viento y código del tiempo.
+```
 
-Para obtener esta información, crearemos un nuevo servicio. Concretamente la clase **WeatherService**, en el fichero **lib/services/weather-service.dart.** Esta clase implementará el método estático **obteClima** que realiza la petición correspondiente al servicio y devuelve esta información en forma de Future (**Future<dynamic>**).
+Este código, como vemos, mantiene la estructura del código que utilizamos en la segunda unidad para realizar peticiones HTTP en APIs REST.
 
-Este código, como vemos, mantiene la estructura del código que vamos a utilizar en la segunda unidad para realizar peticiones HTTP en APIs REST.
 ## La pantalla principal
-La pantalla principal de la aplicación será un widget sin estado que llamaremos **OratgeScreen**, ubicada en lib/screens/oratge\_screen.dart.
+
+La pantalla principal de la aplicación será un widget sin estado que llamaremos `OratgeScreen`, ubicada en `lib/screens/oratge_screen.dart`.
 
 Esta pantalla se generará en términos de un tipo *Future*, que vendrá determinado por la ubicación del dispositivo:
 
+```dart
 class OratgeScreen extends StatelessWidget {
+  const OratgeScreen({super.key});
 
-`  `const OratgeScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        // Nuestro widget principal dependerá en primera instancia
+        // de la ubicación
+        future: GeolocationService.determinaPosicion(),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          //...
+        });
+    }
+}
+```
 
-`  `@override
+Como vemos, se trata de un `FutureBuilder*, cuyo `future` es el resultado de la función `determinaPosicion`.
 
-`  `Widget build(BuildContext context) {
+El `builder` correspondiente dibujará un indicador de progreso mientras no se resuelva este *futuro*, y cuando se resuelva, si todo va bien nos devolverá un widget personalizado de tipo *WidgetClima* que definiremos en el apartado siguiente. En caso de producirse algún error, se generará un texto indicándolo.
 
-`    `return FutureBuilder(
+```dart
+builder: (BuildContext context, AsyncSnapshot snapshot) {
+  // Inicialización de widget con el resultado
+  Widget miTiempo;
 
-`        `// El nostre giny principal dependrà en primera instància
+  // Comprobamos el estado de la conexión
+  if (snapshot.connectionState == ConnectionState.done) {
+    // Si ha finalizado (ConnectionState.done), comprobamos si tiene errores
+    if (snapshot.hasError) {
+      // Si tiene errores, creeamos un un Text con el texto de este error
+      debugPrint(snapshot.error.toString());
+      miTiempo = Center(
+        child: Text("Error: ${snapshot.error.toString()}"),
+      );
+    } else if (snapshot.hasData) {
+      // Si no hay errores comprobamos si hay datos, y
+      // construimos con ellos el widget a mostrar.
+      // Recordemos que snapshot.data contendrá el contenido
+      // que ha resuelto la llamada asíncrona.
+      // Si todo va bien, el resultado será un Map (JSON),
+      // con la latitud i la longitud
 
-`        `// de la ubicació
+      double longitud = snapshot.data["longitud"];
+      double latitud = snapshot.data["latitud"];
 
-`        `future: GeolocationService.determinaPosicio(),
+      miTiempo = Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(children: [
+            Text("Coordenades: $latitud, $longitud",
+                style: Theme.of(context).textTheme.headlineMedium),
+            const SizedBox(height: 50),
+            WidgetClima(
+              latitud: latitud,
+              longitud: longitud,
+            )
+          ]),
+        ),
+      );
+      // Finalmente, devolvemos el widget que hemos construido
+      return miTiempo;
+    }
+  }
 
-`        `builder: (BuildContext context, AsyncSnapshot snapshot) {
-
-`          `//...
-
-`        `});
-
-`    `}
-
+  return const LinearProgressIndicator();
 }
 
-Como vemos, se trata de un **FutureBuilder**, cuyo 'future es el resultado de la función **determinaPosicio**.
+```
 
-El **builder** correspondiente dibujará un indicador de progreso mientras no se resuelva este *futuro*, y cuando se resuelva, si todo va bien nos devolverá un widget personalizado de tipo *WidgetClima* que definiremos en el apartado siguiente. En caso de producirse algún error, se generará un texto indicándolo.
+Observemos algunos detalles:
 
-`  `builder: (BuildContext context, AsyncSnapshot snapshot) {
+- Cuando el resultado de la función `determinaPosicion()` se resuelve, obtendremos en el `snapshot` un diccionario con la latitud y la longitud, que serán los parámetros con los que habrá que inicializar nuestro widget personalizado `WidgetClima`.
+  
+- El widget que se construye cuando se resuelve este futuro es una columna (`Column`), centrada (`Center`) y con 24 puntos de margen (`Padding`), con `EdgeInsets.all(24.0))`. Esta columna contendrá dos filas: la primera con un texto con las coordenadas, a modo de cabecera, y la segunda, el widget personalizado `WidgetClima`.
 
-`    `// Inicialització del giny amb el resultat
-
-`    `Widget elMeuTemps;
-
-`    `// Comprovem l'estat de la connexió
-
-`    `if (snapshot.connectionState == ConnectionState.done) {
-
-`    `// Si ha finalitzat (ConnectionState.done), comprovem si té errors
-
-`    `if (snapshot.hasError) {
-
-`        `// Si té errors, creem un Text amb el text d'aquest error
-
-`        `debugPrint(snapshot.error.toString());
-
-`        `elMeuTemps = Center(
-
-`        `child: Text("Error: ${snapshot.error.toString()}"),
-
-`        `);
-
-`    `} else if (snapshot.hasData) {
-
-`        `// Si no hi ha errors comprovem si hi ha dades, i
-
-`        `// construim emb elles el giny a mostrar.
-
-`        `// Recordem que  snapshot.data contindrà el contingut
-
-`        `// al que s'ha resolt la crida asíncrona.
-
-`        `// Si tot va bé, el resultat serà un Map (JSON),
-
-`        `// amb la latitud i la longitud
-
-`        `double longitud = snapshot.data["longitud"];
-
-`        `double latitud = snapshot.data["latitud"];
-
-`        `elMeuTemps = Center(
-
-`        `child: Padding(
-
-`            `padding: const EdgeInsets.all(24.0),
-
-`            `child: Column(children: [
-
-`            `Text("Coordenades: $latitud, $longitud",
-
-`                `style: Theme.of(context).textTheme.headlineMedium),
-
-`            `const SizedBox(height: 50),
-
-`            `WidgetClima(
-
-`                `latitud: latitud,
-
-`                `longitud: longitud,
-
-`            `)
-
-`            `]),
-
-`        `),
-
-`        `);
-
-`        `// Finalment, retornem el giny que hem construit
-
-`        `return elMeuTemps;
-
-`    `}
-
-`    `}
-
-`    `return const LinearProgressIndicator();
-
-`  `}
-
-Detente a observar algunos detalles:
-
-- Cuando el resultado de la función **determinaPosicio()** se resuelve, obtendremos en el **snapshot** un diccionario con la latitud y la longitud, que serán los parámetros con los que habrá que inicializar nuestro widget personalizado ***WidgetClima***.
-- El widget que se construye cuando se resuelve este futuro es una columna (**Column**), centrada (**Center**) y con 24 puntos de margen (**Padding**, con **EdgeInsets.all(24.0)).** Esta columna contendrá dos filas: la primera con un texto con las coordenadas, a modo de cabecera, y la segunda, el widget personalizado **WidgetClima**.
-
+---
 Existen varios servicios web de geocodificación (OpenCage Geocoder, Geonames, Google Places, Mapbox), con los que podríamos obtener el nombre de la población a partir de las coordenadas geográficas, para mostrar éste en lugar de las coordenadas. No obstante, se trata de servicios que requieren de registro previo y autenticación, aunque se utilice un plan gratuito.
+***
 
 ## El widget WidgetClima
-Finalmente, el widget que mostrará la información meteorológica actual será el widget personalizado **WidgetClima**. Aunque podría tratarse de un widget sin estado, vamos a trabajarlo con estado.
+
+Finalmente, el widget que mostrará la información meteorológica actual será el widget personalizado `WidgetClima`. Aunque podría tratarse de un widget sin estado, vamos a trabajarlo con estado.
 
 Este widget tendrá la siguiente estructura:
 
+```dart
 class WidgetClima extends StatefulWidget {
+  const WidgetClima({
+    required this.latitud,
+    required this.longitud,
+    super.key,
+  }); 
 
-`  `const WidgetClima({
+  final double? latitud;
+  final double? longitud;
 
-`    `required this.latitud,
-
-`    `required this.longitud,
-
-`    `super.key,
-
-`  `}); 
-
-`  `final double? latitud;
-
-`  `final double? longitud;
-
-`  `@override
-
-`  `State<WidgetClima> createState() => \_WidgetClimaState();
-
+  @override
+  State<WidgetClima> createState() => _WidgetClimaState();
 }
+```
 
-Como vemos, es un widget que se inicializa con la latitud y la longitud, que se proporcionan como argumentos con nombre, y que contiene un estado **\_WidgetClimaState.**
+Como vemos, es un widget que se inicializa con la latitud y la longitud, que se proporcionan como argumentos con nombre, y que contiene un estado `_WidgetClimaState`.
 
 Este estado se definirá de la siguiente forma:
 
-class \_WidgetClimaState extends State<WidgetClima> {
+```dart
+class _WidgetClimaState extends State<WidgetClima> {
+  late Future<dynamic> info;
 
-`  `late Future<dynamic> info;
+  @override
+  void initState() {
+    super.initState();
+    info = WeatherService.obtenerClima(
+        longitud: widget.longitud ?? 0.0, latitud: widget.latitud ?? 0.0);
+  }
 
-`  `@override
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: info,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        //...
+      },
+    );
+  }
 
-`  `void initState() {
+  Widget _obtenerWidgetDireccionViento(double direccionViento) {...}
 
-`    `super.initState();
-
-`    `info = WeatherService.obteClima(
-
-`        `longitud: widget.longitud ?? 0.0, latitud: widget.latitud ?? 0.0);
-
-`  `}
-
-`  `@override
-
-`  `Widget build(BuildContext context) {
-
-`    `return FutureBuilder(
-
-`      `future: info,
-
-`      `builder: (BuildContext context, AsyncSnapshot snapshot) {
-
-`        `//...
-
-`      `},
-
-`    `);
-
-`  `}
-
-`  `Widget \_obteGinyDireccioVent(double direccioVent) {...}
-
-`  `Widget \_obtenirIconaOratge(String value) {...}
-
+  Widget _obtenerIconoTiempo(String value) {...}
 }
+```
 
-Este estado define la propiedad **info**, como un ***Future*** que se resolverá a un objeto ***dynamic***, y que será el resultado del método **obteClima**, definido en la clase **WeatherService**.
+Este estado define la propiedad `info`, como un `Future` que se resolverá a un objeto `dynamic`, y que será el resultado del método `obtenerClima`, definido en la clase `WeatherService`.
 
-Observemos que esta propiedad se ha definido como **late**. Esto se hace para indicar que el valor de una variable que requiere de inicialización se realizará posteriormente. En caso de que no hagamos esta inicialización posterior, el sistema lanzará la excepción ***LateInitializationError***. Por otra parte, esta inicialización se hace al método **initState(),** de inicialización del estado.
+Observemos que esta propiedad se ha definido como `late`. Esto se hace para indicar que el valor de una variable que requiere de inicialización se realizará posteriormente. En caso de que no hagamos esta inicialización posterior, el sistema lanzará la excepción ***LateInitializationError***. Por otra parte, esta inicialización se hace en el método `initState()`, de inicialización del estado.
 
-Después, el método **build**, consistirá en un ***FutureBuilder*** que depende de esta propiedad **info**. Vemos que se han definido también un par de métodos privados: **\_obteGinyDireccioVent** y **\_obtenirIconaImatge**, que servirán para obtener algunas partes del widget del tiempo resultante.
+Después, el método `build`, consistirá en un ***FutureBuilder*** que depende de esta propiedad `info`. Vemos que se han definido también un par de métodos privados: `_obtenerWidgetDireccionViento` y `_obtenerIconoTiempo`, que servirán para obtener algunas partes del widget del tiempo resultante.
 
-Veamos ahora cómo se construye el widget en este componente **builder**. El esquema general del mismo será el siguiente:
+Veamos ahora cómo se construye el widget en este componente `builder`. El esquema general del mismo será el siguiente:
 
+```dart
 builder: (BuildContext context, AsyncSnapshot snapshot) {
-
 if (snapshot.hasData) {
+     // Una vez se resuelve el Future, tendremos disponible
+    // la información necesaria para construir el widget
 
-`     `// Una vegada es resol el Future, tindrem disponible
+    // Obtenemos, en primer lugar, la información del snapshot
 
-`    `// la informació necessària per construir el giny
+    String temperatura =
+        snapshot.data["current_weather"]["temperature"].toString();
+    String velViento =
+        snapshot.data["current_weather"]["windspeed"].toString();
+    String direccionViento =
+        snapshot.data["current_weather"]["winddirection"].toString();
+    String codigo =
+        snapshot.data["current_weather"]["weathercode"].toString();
 
-`    `// Obtenim en primer lloc la informació de l'snapshot
+    // Y ahora cremaos el widget
 
-`    `String temperatura =
-
-`        `snapshot.data["current\_weather"]["temperature"].toString();
-
-`    `String velVent =
-
-`        `snapshot.data["current\_weather"]["windspeed"].toString();
-
-`    `String direccioVent =
-
-`        `snapshot.data["current\_weather"]["winddirection"].toString();
-
-`    `String codi =
-
-`        `snapshot.data["current\_weather"]["weathercode"].toString();
-
-`    `// I ara creem el giny
-
-`    `return Column(...);
-
+    return Column(...);
 }
-
 return const CircularProgressIndicator();
-
 },
+```
 
-Como vemos, mientras el ***future*** no se haya resuelto y no contenga datos, se mostrará un indicador de progreso circular, y en el momento en que el **snapshot** tenga datos, se construirá el wiget. Estos datos que necesitaremos son la temperatura, la velocidad del viento, la dirección y un código que describe el clima (soleado, nube, etc.).
+Como vemos, mientras el ***future*** no se haya resuelto y no contenga datos, se mostrará un indicador de progreso circular, y en el momento en que el `snapshot` tenga datos, se construirá el wiget. Estos datos que necesitaremos son la temperatura, la velocidad del viento, la dirección y un código que describe el clima (soleado, nube, etc.).
 
 Este widget tendrá forma de columna, y esquemáticamente, tendrá el siguiente aspecto:
 
-![](Aspose.Words.7eb0c27b-429b-41e7-9ca5-8ee5b6a4eec2.003.png)
+![WidgetTiempo](./images/imagen03.png)
 
-Como vemos, la columna tiene cuatro filas: Una con el icono descriptivo (sol, nubes), un **SizedBox**, una con la temperatura y otra con el viento.
+Como vemos, la columna tiene cuatro filas: Una con el icono descriptivo (sol, nubes), un `SizedBox`, una con la temperatura y otra con el viento.
 
 Al mismo tiempo, las filas de la temperatura y la información del viento están compuestas por varias columnas, con iconos y texto. 
 
 El código completo de esta columna será:
 
+```dart
 return Column(
-
 children: [
-
-`    `\_obtenirIconaOratge(codi),
-
-`    `Row(
-
-`    `mainAxisAlignment: MainAxisAlignment.center,
-
-`    `children: [
-
-`        `const Icon(
-
-`        `Icons.thermostat,
-
-`        `size: 35,
-
-`        `),
-
-`        `Text(
-
-`        `"$temperaturaº",
-
-`        `style: Theme.of(context).textTheme.headlineMedium,
-
-`        `),
-
-`    `],
-
-`    `),
-
-`    `const SizedBox(height: 20),
-
-`    `Row(
-
-`    `mainAxisAlignment: MainAxisAlignment.center,
-
-`    `children: [
-
-`        `const Icon(Icons.wind\_power, size: 35),
-
-`        `const SizedBox(width: 30),
-
-`        `Text(
-
-`        `"${velVent}km/h",
-
-`        `style: Theme.of(context).textTheme.headlineSmall,
-
-`        `),
-
-`        `const SizedBox(width: 30),
-
-`        `\_obteGinyDireccioVent(double.parse(direccioVent)),
-
-`    `],
-
-`    `),
-
+    _obtenerIconoTiempo(codigo),
+    Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+        const Icon(
+        Icons.thermostat,
+        size: 35,
+        ),
+        Text(
+        "$temperaturaº",
+        style: Theme.of(context).textTheme.headlineMedium,
+        ),
+    ],
+    ),
+    const SizedBox(height: 20),
+    Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+        const Icon(Icons.wind_power, size: 35),
+        const SizedBox(width: 30),
+        Text(
+        "${velViento}km/h",
+        style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        const SizedBox(width: 30),
+        _obtenerWidgetDireccionViento(double.parse(direccionViento)),
+    ],
+    ),
 ],
-
 );
+```
 
-Sólo nos queda por ver qué contienen los métodos privados **\_obtenirIconaOratge()** y **\_obteGinyDireccioVent().**
-### **El método \_obtenirIconaOratge()**
+Sólo nos queda por ver qué contienen los métodos privados `_obtenerIconoTiempo()` y `_obtenerWidgetDireccionViento()`.
+
+### **El método _obtenerIconoTiempo()**
+
 Este método devuelve un widget con una imagen que se corresponde al código del tiempo (Soleado, nube, etc.) Los códigos del tiempo están estandarizados por la Organización meteorológica mundial (WMO - Wolrd Meteorological Organization), y los podemos consultar en la web de OpenMeteo: <https://open-meteo.com/en/docs/dwd-api#weathervariables>-
 
-Como podemos ver, para ello se definen varios conjuntos de códigos, y se hace uso del método **contains** de la clase **Set** para determinar a qué conjunto pertenece el código proporcionado, y por lo tanto saber qué imagen se corresponde. Las imágenes estarán definidas como ***assets*** en el fichero *pubspec.yaml*, y se encuentran en la carpeta **assets/icons/png**. 
+Como podemos ver, para ello se definen varios conjuntos de códigos, y se hace uso del método `contains` de la clase `Set` para determinar a qué conjunto pertenece el código proporcionado, y por lo tanto saber qué imagen se corresponde. Las imágenes estarán definidas como ***assets*** en el fichero *pubspec.yaml*, y se encuentran en la carpeta `assets/icons/png`. 
 
 Veamos el código completo:
 
-<a name="__codelineno-14-1"></a>  Widget \_obtenirIconaOratge(String value) {
+```dart
+  Widget _obtenerIconoTiempo(String value) {
+    Set<String> sol = <String>{"0"};
+    Set<String> pocasNubes = <String>{"1", "2", "3"};
+    Set<String> nubes = <String>{"45", "48"};
+    Set<String> lluviaSuave = <String>{"51", "53", "55"};
+    Set<String> lluvia = <String>{
+      "61",
+      "63",
+      "65",
+      "66",
+      "67",
+      "80",
+      "81",
+      "82",
+      "95",
+      "96",
+      "99"
+    };
+    Set<String> neu = <String>{"71", "73", "75", "77", "85", "86"};
 
-`    `Set<String> sol = <String>{"0"};
+    if (sol.contains(value)) {
+      return Image.asset("assets/icons/png/soleado.png");
+    }
+    if (pocasNubes.contains(value)) {
+      return Image.asset("assets/icons/png/poco_nublado.png");
+    }
+    if (nubes.contains(value)) {
+      return Image.asset("assets/icons/png/nublado.png");
+    }
+    if (lluviaSuave.contains(value)) {
+      return Image.asset("assets/icons/png/lluvia_debil.png");
+    }
+    if (lluvia.contains(value)) {
+      return Image.asset("assets/icons/png/lluvia.png");
+    }
+    if (neu.contains(value)) {
+      return Image.asset("assets/icons/png/nieve.png");
+    }
 
-`    `Set<String> pocsNuvols = <String>{"1", "2", "3"};
+    return Image.asset("assets/icons/png/poco_nublado.png");
+  }
 
-`    `Set<String> nuvols = <String>{"45", "48"};
+```
 
-`    `Set<String> plujasuau = <String>{"51", "53", "55"};
+### **El método _obtenerWidgetDireccionViento()**
 
-`    `Set<String> pluja = <String>{
-
-`      `"61",
-
-`      `"63",
-
-`      `"65",
-
-`      `"66",
-
-`      `"67",
-
-`      `"80",
-
-`      `"81",
-
-`      `"82",
-
-`      `"95",
-
-`      `"96",
-
-`      `"99"
-
-`    `};
-
-`    `Set<String> neu = <String>{"71", "73", "75", "77", "85", "86"};
-
-`    `if (sol.contains(value)) {
-
-`      `return Image.asset("assets/icons/png/soleado.png");
-
-`    `}
-
-`    `if (pocsNuvols.contains(value)) {
-
-`      `return Image.asset("assets/icons/png/poco\_nublado.png");
-
-`    `}
-
-`    `if (nuvols.contains(value)) {
-
-`      `return Image.asset("assets/icons/png/nublado.png");
-
-`    `}
-
-`    `if (plujasuau.contains(value)) {
-
-`      `return Image.asset("assets/icons/png/lluvia\_debil.png");
-
-`    `}
-
-`    `if (pluja.contains(value)) {
-
-`      `return Image.asset("assets/icons/png/lluvia.png");
-
-`    `}
-
-`    `if (neu.contains(value)) {
-
-`      `return Image.asset("assets/icons/png/nieve.png");
-
-`    `}
-
-`    `return Image.asset("assets/icons/png/poco\_nublado.png");
-
-`  `}
-
-### **El método \_obteGinyDireccioVent()**
-Este método nos devuelve una fila (**Row**) con dos elementos: Un texto con el nombre del viento y un icono que marca esta dirección. 
+Este método nos devuelve una fila (`Row`) con dos elementos: Un texto con el nombre del viento y un icono que marca esta dirección. 
 
 El método recibe un valor en coma flotante con la dirección del viento, expresada en grados, de manera que sólo debemos determinar en qué rango se encuentra esta dirección para establecer el icono y el nombre del viento correspondiente:
 
-`  `Widget \_obteGinyDireccioVent(String direccioVent) {
+```dart
+  Widget _obtenerWidgetDireccionViento(String direccionViento) {
+    // Esta función nos devuelve un widget que contiene
+    // un icono y un texto, con la dirección y el nombre del viento
+    // segun su dirección.
+    // Utilizamos `late` para indicar que asignaremos el valor después
+    // a las variables.
 
-`    `// Aquesta funció ens retorna una giny que conté
+    double dir = double.parse(direccionViento);
+    late Icon icono;
+    late String nombreViento;
 
-`    `// una icona i un text, amb la direcció i el nom del vent
-
-`    `// segons la seua direcció.
-
-`    `// Fem ús de `late` per indicar que assignarem el valor després
-
-`    `// a les variables.
-
-`    `double dir = double.parse(direccioVent);
-
-`    `late Icon icona;
-
-`    `late String nomVent;
-
-`    `if (dir > 22.5 && dir < 65.5) {
-
-`      `icona = const Icon(Icons.north\_east);
-
-`      `nomVent = "Gregal";
-
-`    `} else if (dir > 67.5 && dir < 112.5) {
-
-`      `icona = const Icon(Icons.east);
-
-`      `nomVent = "Llevant";
-
-`    `} else if (dir > 112.5 && dir < 157.5) {
-
-`      `icona = const Icon(Icons.south\_east);
-
-`      `nomVent = "Xaloc";
-
-`    `} else if (dir > 157.5 && dir < 202.5) {
-
-`      `icona = const Icon(Icons.south);
-
-`      `nomVent = "Migjorn";
-
-`    `} else if (dir > 202.5 && dir < 247.5) {
-
-`      `icona = const Icon(Icons.south\_west);
-
-`      `nomVent = "Llebeig/Garbí";
-
-`    `} else if (dir > 247.5 && dir < 292.5) {
-
-`      `icona = const Icon(Icons.west);
-
-`      `nomVent = "Ponent";
-
-`    `} else if (dir > 292.5 && dir < 337.5) {
-
-`      `icona = const Icon(Icons.north\_west);
-
-`      `nomVent = "Mestral";
-
-`    `} else {
-
-`      `icona = const Icon(Icons.north);
-
-`      `nomVent = "Tramuntana";
-
-`    `}
-
-`    `return Row(children: [
-
-`      `Text(
-
-`        `nomVent,
-
-`        `style: Theme.of(context).textTheme.headlineSmall,
-
-`      `),
-
-`      `icona,
-
-`    `]);
-
-`  `}
+    if (dir > 22.5 && dir < 65.5) {
+      icono = const Icon(Icons.north_east);
+      nombreViento = "Gregal";
+    } else if (dir > 67.5 && dir < 112.5) {
+      icono = const Icon(Icons.east);
+      nombreViento = "Llevant";
+    } else if (dir > 112.5 && dir < 157.5) {
+      icono = const Icon(Icons.south_east);
+      nombreViento = "Xaloc";
+    } else if (dir > 157.5 && dir < 202.5) {
+      icono = const Icon(Icons.south);
+      nombreViento = "Migjorn";
+    } else if (dir > 202.5 && dir < 247.5) {
+      icono = const Icon(Icons.south_west);
+      nombreViento = "Llebeig/Garbí";
+    } else if (dir > 247.5 && dir < 292.5) {
+      icono = const Icon(Icons.west);
+      nombreViento = "Ponent";
+    } else if (dir > 292.5 && dir < 337.5) {
+      icono = const Icon(Icons.north_west);
+      nombreViento = "Mestral";
+    } else {
+      icono = const Icon(Icons.north);
+      nombreViento = "Tramuntana";
+    }
+    return Row(children: [
+      Text(
+        nombreViento,
+        style: Theme.of(context).textTheme.headlineSmall,
+      ),
+      icono,
+    ]);
+  }
+```
 
 
-
-
-*Página 1 de 25*
+# FALTA STREAMS
