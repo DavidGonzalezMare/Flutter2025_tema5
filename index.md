@@ -1,4 +1,8 @@
-﻿
+﻿![Union europea](./images/union_europea.jpeg)  ![Generalitat](./images/generalitat.jpeg) ![Mare Nostrum](./images/mare_nostrum.png)
+
+<br>
+<br>
+
 # Unitat 5. Construcción asíncrona de Widgets
 
 ![FutureBuilder](./images/imagen01.png)
@@ -19,11 +23,12 @@ No lo vamos a ver de momento, pero tenéis, en el enlace de los apuntes en valen
 [3.	Una app del tiempo](#_apartado3)
 
 
-
+<br>
+<br>
 
 # <a name="_apartado1"></a>1. El Widget FutureBuilder
 
-Hoy en día las aplicaciones, ya sean de escritorio, pero sobre todo móviles están fuertemente integradas en la nube, y hacen uso de múltiples servicios de Internet para diversos fines, como pueda ser la obtención de información o la gestión de la persistencia. El trabajo con la nube supone que las aplicaciones deben estar preparadas para trabajar en entornos de naturaleza asíncrona, donde la respuesta a una petición no es inmediata. 
+Hoy en día las aplicaciones, ya sean de escritorio, pero sobre todo móviles, están fuertemente integradas en la nube, y hacen uso de múltiples servicios de Internet para diversos fines, como pueda ser la obtención de información o la gestión de la persistencia. El trabajo con la nube supone que las aplicaciones deben estar preparadas para trabajar en entornos de naturaleza asíncrona, donde la respuesta a una petición no es inmediata. 
 
 De las aplicaciones actuales, se espera un comportamiento fluido, que no de la sensación de bloqueo, y que permitan la interacción mientras se está esperando alguna respuesta.
 
@@ -61,10 +66,13 @@ respuesta.then((valorRespuesta) => print("Respuesta: $valorRespuesta"));
 
 Para ello hacíamos uso de la combinación `async/await`, con el fin de esperarnos a que finalizara la función asíncrona y acceder directamente al resultado. Es decir, convertimos una función asíncrona en una síncrona:
 
+```dart
 nombreFuncion() async {
   String respuesta=await funcioAsincrona();
     print("Resposta: $respuesta");
 }
+```
+<br>
 
 ## El Widget FutureBuilder
 
@@ -87,7 +95,9 @@ FutureBuilder(
 Este constructor del widget recibe tres argumentos con nombre:
 
 - `future`: con el nombre del *Future* resultante de una operación asíncrona,
+  
 - `initialData`: con el valor inicial para el futuro hasta que se resuelva éste, 
+  
 - `builder`: Este es el único argumento requerido, y se trata de una función anónima que se invocará una vez se ha resuelto el Future con el fin de generar el widget. Esta función recibe el `context` y un objeto de tipo `AsyncSnapshot` con información sobre el estado del Future y su resultado si se ha completado. Este `snapshot` (*instantánea*) contendrá, entre otros, el flag `hasData` que informa sobre la resolución del Future y de la propiedad `data`, donde se encuentra el valor al que se ha resuelto el Future. En caso de que se haya producido algún error, también disponemos del flag `haserror` para indicarlo y la propiedad `error` con la descripción del mismo.
 
 Vemos como haríamos uso de este widget para generar un widget para la interfaz de usuario como respuesta al resultado de la función asíncrona definida previamente:
@@ -111,7 +121,7 @@ class WidgetAsincrono extends StatelessWidget {
 }
 ```
 
-Como vemos, hemos creado la clase `WidgetAsincrono`, nos construye un `FutureBuilder`. Este `FutureBuilder` depende de la función asíncrona `funcioAsincrona` definida previamente. Mientras ésta no se haya resuelto, el valor que contendrá `snapshot` será el que hemos asignado de manera predeterminada a `initialData`, de manera que inicialmente, el `builder` construirá el widget con este valor. Cuando el *Future* de la función asíncrona se resuelva, el valor del ***snapshot*** cambiará, cambiando el estado del FutureBuilder y forzando el redibujado del widget con el resultado. 
+Como vemos, hemos creado la clase `WidgetAsincrono`, la cual nos construye un `FutureBuilder`. Este `FutureBuilder` depende de la función asíncrona `funcioAsincrona` definida previamente. Mientras ésta no se haya resuelto, el valor que contendrá `snapshot` será el que hemos asignado de manera predeterminada a `initialData`, de manera que inicialmente, el `builder` construirá el widget con este valor. Cuando el *Future* de la función asíncrona se resuelva, el valor del ***snapshot*** cambiará, cambiando el estado del FutureBuilder y forzando el redibujado del widget con el resultado. 
 
 De esta manera, la aplicación mostrará el texto *"Esperando respuesta..."*, y al cabo de un tiempo éste cambiará a *"Valor de retorno"*, que es el que devolvía esta función.
 
@@ -219,6 +229,8 @@ Podemos ver el resultado completo en el siguiente Gist:
   frameborder="0">
 </iframe>
 
+<br>
+<br>
 
 # <a name="_apartado2"></a>2. Un ejemplo con FutureBuilder. Geolocalización.
 
@@ -232,9 +244,9 @@ El repositorio [pub.dev](https://pub.dev/) contiene todos los paquetes oficiales
 
 El repositorio [pub.dev](https://pub.dev/) nos ofrece para cada paquete información diversa que es interesante conocer.
 
-Tal y como podemos ver en la imagen de arriba, aparte del nombre del paquete y su versión, se nos muestra otra información que conviene tener en cuenta antes de utilizar un paquete:
-
 ---
+
+Tal y como podemos ver en la imagen de arriba, aparte del nombre del paquete y su versión, se nos muestra otra información que conviene tener en cuenta antes de utilizar un paquete:
 
 - Nos muestra una etiqueta (Null Safety) si la librería está escrita con el sistema de tipo *null safety* de Dart (a partir de la versión 2.12 del lenguaje). Esto no significa que sus funciones retornen siempre valores no nulos, sino que, se indica explícitamente cuando una función puede devolver un tipo potencialmente nulo (¿con Tipo?). Por ejemplo, algunas funciones de esta librería pueden devolver un tipo null cuando no se es capaz de determinar la ubicación.
   
@@ -322,13 +334,17 @@ Entre las diferentes funcionalidades que nos ofrece, encontramos:
 
 Finalmente, dado que el paquete contiene código específico de la plataforma, deberemos recompilar y reiniciar la aplicación, ya que un *hot reload* o *hot restart* solo afecta al código Dart.
 
-Pasamos ahora a ver el código que nos implementa la funcionalidad para obtener la ubicación. Para ello, implementamos en el fichero `lib/services/geolocation_service.dart` la clase `GeolocationService`, que implementará el método `determinaPosicio()`. 
+Pasamos ahora a ver el código que nos implementa la funcionalidad para obtener la ubicación. Para ello, implementamos en el fichero `lib/services/geolocation_service.dart` la clase `GeolocationService`, que implementará el método `determinaPosicio()`.
+
+---
 
 **La carpeta services**
 
 Cuando nuestras aplicaciones hacen uso de servicios con cierta funcionalidad específica, es habitual crear una carpeta específica para ellos, llamada `services`. Ésta contiene clases con métodos que proporcionan características especializadas. Podemos encontrar servicios de acceso a API, de almacenamiento o de acceso a medios, por ejemplo. 
 
 Los servicios nos ayudan a mantener un código relativamente limpio y separar funcionalidad, abstrayendo las funcionalidades obtenidas de fuentes de terceros, y reduciendo la dependencia.
+
+---
 
 En este caso, lo que hacemos es ofrecer un servicio de geolocalización que hace uso de la librería `geolocator`. Si en un futuro se cambiara de librería, sólo habría que modificar esta clase de servicio.
 
@@ -391,7 +407,7 @@ class GeolocationService {
 
 Observemos que este método se declara como `static Future<Position?>`, lo que quiere decir que devuelve un tipo *Future* que se resolverá a un tipo *Position*. Este tipo `Position` está definido también en la librería *geolocator*, y representa una posición con su latitud y longitud.
 
-Sin embargo, lo que nos interesa es cómo tratar este *Future* que se nos devuelve y cómo dibujar el widget correspondiente. Para ello haremos uso de un widget *FutureBuilder* que dependerá de este *Future* para redibujarse.
+Sin embargo, lo que nos interesa **es cómo tratar este *Future* que se nos devuelve** y cómo dibujar el widget correspondiente. Para ello haremos uso de un widget *FutureBuilder* que dependerá de este *Future* para redibujarse.
 
 Este widget se define en el fichero `lib/widgets/mostrar_coordenadas.dart` tendrá la siguiente estructura:
 
@@ -495,7 +511,8 @@ builder: (BuildContext context, AsyncSnapshot snapshot) {
 
 Como vemos, en primer lugar, se hacen varias comprobaciones sobre la respuesta de la función asíncrona mediante el `snapshot` que recibimos como argumento. Con `snapshot.connectionState` comprobamos el estado de la respuesta. Cuando este es `ConnectionState.done` significa que ya hemos obtenido la respuesta, de manera que comprobamos si se ha producido algún error (con `snapshot.hasError`), y si este `snapshot` contiene datos. En caso de que contenga información, se construye el mensaje para mostrar a partir de esta información y se devuelve en un widget de tipo Texto centrado. Mientras se esté esperando respuesta, lo que se dibujará es un indicador de progreso circular.
 
-
+<br>
+<br>
 
 # <a name="_apartado3"></a>3. Una app del tiempo
 
@@ -629,13 +646,13 @@ Este código, como vemos, mantiene la estructura del código que utilizamos en l
 
 ## La pantalla principal
 
-La pantalla principal de la aplicación será un widget sin estado que llamaremos `OratgeScreen`, ubicada en `lib/screens/oratge_screen.dart`.
+La pantalla principal de la aplicación será un widget sin estado que llamaremos `WeatherScreen`, ubicada en `lib/screens/weather_screen.dart`.
 
 Esta pantalla se generará en términos de un tipo *Future*, que vendrá determinado por la ubicación del dispositivo:
 
 ```dart
-class OratgeScreen extends StatelessWidget {
-  const OratgeScreen({super.key});
+class WeatherScreen extends StatelessWidget {
+  const WeatherScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -650,7 +667,7 @@ class OratgeScreen extends StatelessWidget {
 }
 ```
 
-Como vemos, se trata de un `FutureBuilder*, cuyo `future` es el resultado de la función `determinaPosicion`.
+Como vemos, se trata de un `FutureBuilder`, cuyo `future` es el resultado de la función `determinaPosicion`.
 
 El `builder` correspondiente dibujará un indicador de progreso mientras no se resuelva este *futuro*, y cuando se resuelva, si todo va bien nos devolverá un widget personalizado de tipo *WidgetClima* que definiremos en el apartado siguiente. En caso de producirse algún error, se generará un texto indicándolo.
 
@@ -683,7 +700,7 @@ builder: (BuildContext context, AsyncSnapshot snapshot) {
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(children: [
-            Text("Coordenades: $latitud, $longitud",
+            Text("Coordenadas: $latitud, $longitud",
                 style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 50),
             WidgetClima(
@@ -711,11 +728,13 @@ Observemos algunos detalles:
 
 ---
 Existen varios servicios web de geocodificación (OpenCage Geocoder, Geonames, Google Places, Mapbox), con los que podríamos obtener el nombre de la población a partir de las coordenadas geográficas, para mostrar éste en lugar de las coordenadas. No obstante, se trata de servicios que requieren de registro previo y autenticación, aunque se utilice un plan gratuito.
-***
+---
+
+<br>
 
 ## El widget WidgetClima
 
-Finalmente, el widget que mostrará la información meteorológica actual será el widget personalizado `WidgetClima`. Aunque podría tratarse de un widget sin estado, vamos a trabajarlo con estado.
+Finalmente, el widget que mostrará la información meteorológica actual será el widget personalizado `WidgetClima`. Lo podemos crear en el fichero `lib/widgets/widget_clima.dart`. Aunque podría tratarse de un widget sin estado, vamos a trabajarlo con estado.
 
 Este widget tendrá la siguiente estructura:
 
