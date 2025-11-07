@@ -30,7 +30,7 @@ No lo vamos a ver de momento, pero tenéis, en el enlace de los apuntes en valen
 
 Hoy en día las aplicaciones, ya sean de escritorio, pero sobre todo móviles, están fuertemente integradas en la nube, y hacen uso de múltiples servicios de Internet para diversos fines, como pueda ser la obtención de información o la gestión de la persistencia. El trabajo con la nube supone que las aplicaciones deben estar preparadas para trabajar en entornos de naturaleza asíncrona, donde la respuesta a una petición no es inmediata. 
 
-De las aplicaciones actuales, se espera un comportamiento fluido, que no de la sensación de bloqueo, y que permitan la interacción mientras se está esperando alguna respuesta.
+De las aplicaciones actuales, se espera un comportamiento fluido, que no dé la sensación de bloqueo, y que permitan la interacción mientras se está esperando alguna respuesta.
 
 Es ahí donde entran en juego los widgets que hacen posible trabajar este asincronismo.
 
@@ -76,9 +76,9 @@ nombreFuncion() async {
 
 ## El Widget FutureBuilder
 
-Cuando trabajamos con funciones asíncronas en Flutter, la interfaz de usuario debe responder de manera adecuada a los diferentes eventos y resultados, de manera que el comportamiento sea el esperado y no se produzcan bloqueos en la misma.
+Cuando trabajamos con funciones asíncronas en Flutter, **la interfaz de usuario** debe responder de manera adecuada a los diferentes eventos y resultados, de manera que el comportamiento sea el esperado y no se produzcan bloqueos en la misma.
 
-El widget `FutureBuilder` nos permite crear parte de la interfaz de manera asíncrona. Se trata de un widget con estado que puede generarse a sí mismo como respuesta a algún acontecimiento asíncrono.
+El widget `FutureBuilder` nos permite **crear parte de la interfaz de manera asíncrona**. Se trata de un widget con estado que puede generarse a sí mismo como respuesta a algún acontecimiento asíncrono.
 
 Si hacemos uso del snippet **futureBld** veremos que este nos genera el siguiente código, en el que podemos apreciar las principales propiedades del widget:
 
@@ -109,7 +109,7 @@ class WidgetAsincrono extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: funcioAsincrona(),
+      future: funcionAsincrona(),
       initialData: "Esperando respuesta...",
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         String text = "";
@@ -126,15 +126,9 @@ Como vemos, hemos creado la clase `WidgetAsincrono`, la cual nos construye un `F
 De esta manera, la aplicación mostrará el texto *"Esperando respuesta..."*, y al cabo de un tiempo éste cambiará a *"Valor de retorno"*, que es el que devolvía esta función.
 
 
-Podemos ver el resultado completo en el siguiente Gist: 
+**Podemos ver el resultado completo en el siguiente Gist:**   
 [https://dartpad.dev/embed-flutter.html?id=8a37088f2339ad57bfa749ac120bec5a](https://dartpad.dev/embed-flutter.html?id=8a37088f2339ad57bfa749ac120bec5a)
 
-<iframe
-  src="https://dartpad.dev/embed-inline.html?id=8a37088f2339ad57bfa749ac120bec5a"
-  width="100%"
-  height="500px"
-  frameborder="0">
-</iframe>
 
 ### **Indicador de Progreso**
 
@@ -191,18 +185,12 @@ return FutureBuilder(
   },
 );
 ```
+<br>
 
-
-Podemos ver el resultado completo en el siguiente Gist: 
+**Podemos ver el resultado completo en el siguiente Gist:**   
 [https://dartpad.dev/embed-flutter.html?id=1e24c8784963912e6ce27c17b4a78942](https://dartpad.dev/embed-flutter.html?id=1e24c8784963912e6ce27c17b4a78942)
 
-<iframe
-  src="https://dartpad.dev/embed-inline.html?id=1e24c8784963912e6ce27c17b4a78942"
-  width="100%"
-  height="500px"
-  frameborder="0">
-</iframe>
-
+<br>
 
 ### **ConnectionState**
 
@@ -215,19 +203,46 @@ El *Snapshot* que se nos devuelve contiene más información sobre la respuesta,
 
 Veamos de nuevo el ejemplo incluyendo la comprobación de este estado:
 
+```csharp
+// Este widget se construirá en base a un 
+// FutureBuilder vinculado a la función asíncrona.
+
+class WidgetAsincrono extends StatelessWidget {
+  const WidgetAsincrono({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      //future: null,
+      future: funcionAsincrona(), // Comentar per provar la línia de dalt
+      initialData: "Valor inicial",
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        String text = "";
+        if (snapshot.connectionState == ConnectionState.none) {
+          text = "Estat ConnectionState.none.\n Data=${snapshot.data.toString()}";
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
+          text = "Estat ConnectionState.Waiting.\n Esperant resposta...";
+        } else if (snapshot.connectionState == ConnectionState.done) {
+          text = "Estat ConnectionState.done.\nData=${snapshot.data.toString()}";
+        }
+
+        return Center(
+          child: Text(text),
+        );
+      },
+    );
+  }
+}
+
+```
+
 Este código nos mostrará el estado *ConnectionState.Waiting* hasta que se reciba la respuesta. Cuando tengamos la respuesta, mostraremos el estado *Done* y el resultado de la misma.
 
 Si reemplazamos la obtención del future per `future:null` (la línea comentada y comentamos la línea `future:funcioAsincrona()`), veremos que el estado se nos muestra como `None`, ya que no iniciamos la conexión en ningún momento.
 
-Podemos ver el resultado completo en el siguiente Gist: 
+**Podemos ver el resultado completo en el siguiente Gist:**   
 [https://dartpad.dev/embed-flutter.html?id=d1447b56b5c46d0ca2fabb45d964bf3f](https://dartpad.dev/embed-flutter.html?id=d1447b56b5c46d0ca2fabb45d964bf3f)
 
-<iframe
-  src="https://dartpad.dev/embed-inline.html?id=d1447b56b5c46d0ca2fabb45d964bf3f"
-  width="100%"
-  height="500px"
-  frameborder="0">
-</iframe>
 
 <br>
 <br>
@@ -250,8 +265,8 @@ Tal y como podemos ver en la imagen de arriba, aparte del nombre del paquete y s
 
 - Nos muestra una etiqueta (Null Safety) si la librería está escrita con el sistema de tipo *null safety* de Dart (a partir de la versión 2.12 del lenguaje). Esto no significa que sus funciones retornen siempre valores no nulos, sino que, se indica explícitamente cuando una función puede devolver un tipo potencialmente nulo (¿con Tipo?). Por ejemplo, algunas funciones de esta librería pueden devolver un tipo null cuando no se es capaz de determinar la ubicación.
   
-- Para que SDK está creada (Flutter),
-- Para que plataformas es compatible (en este caso: Android, iOS, MacOS, Web y Windows). Para Linux, habría que incorporar también la librería [geolocator_linux](https://pub.dev/packages/geolocator_linux).
+- Para qué SDK está creada (Flutter),
+- Para qué plataformas es compatible (en este caso: Android, iOS, MacOS, Web y Windows). Para Linux, habría que incorporar también la librería [geolocator_linux](https://pub.dev/packages/geolocator_linux).
 
 ---
 
@@ -321,15 +336,18 @@ Una vez tenemos la librería importada, podemos utilizar la clase *Geolocator* p
 Entre las diferentes funcionalidades que nos ofrece, encontramos:
 
 - `Geolocator.isLocationServiceEnabled()`: Función asíncrona que indica si el servicio de geolocalización está activo.
-  
+
 - `Geolocator.checkPermission()`: Comprueba si se tienen permisos de acceso al servicio de geolocalización. Los permisos pueden ser: 
   - `LocationPermission.always`: El permiso está concedido incluso cuando la app está ejecutándose en segundo plano.
   
   - `LocationPermission.denied`: El permiso no está concedido, pero se puede pedir acceso al usuario.
   - `LocationPermission.deniedForever`: El permiso está denegado de manera persistente, de manera que no pide acceso al usuario. Si se desea modificar el permiso debe hacerse desde la configuración de la aplicación. 
   - `LocationPermission.unableToDetermine`: No se ha podido saber el estado de los permisos sobre geolocalización. Sólo será aplicable a entornos web.
+  
 - `Geolocator.requestPermission()`: Muestra el diálogo del sistema para pedir permiso al usuario sobre la geolocalización. 
+  
 - `Geolocator.getCurrentPosition()`: Devuelve de manera asíncrona la posición actual proporcionada por el servicio de geolocalización, con sus respectivas coordenadas de latitud y longitud.
+  
 - `Geolocator.getLastKnownPosition()`: Devuelve de manera asíncrona la última posición conocida almacenada en el dispositivo. Cuando no hay ninguna posición disponible, se devuelve *null*.
 
 Finalmente, dado que el paquete contiene código específico de la plataforma, deberemos recompilar y reiniciar la aplicación, ya que un *hot reload* o *hot restart* solo afecta al código Dart.
