@@ -11,16 +11,14 @@ Hoy en día, la gran mayoría de aplicaciones, y especialmente las aplicaciones 
 
 El trabajo con la nube implica que las aplicaciones deben estar preparadas para trabajar en entornos de naturaleza asíncrona, donde la respuesta a una petición no es inmediata. En esta unidad veremos uno de los widgets principales que hacen posible la construcción asíncrona de interfaces: **FutureBuilder**. 
 
----
-# PENDIENTE
-No lo vamos a ver de momento, pero tenéis, en el enlace de los apuntes en valenciano, el Widget **StreamBuilder** que nos permite trabajar con secuencias de eventos asíncronos.
---- 
 
 [1.	El Widget FutureBuilder](#_apartado1)
 
 [2.	Un ejemplo con FutureBuilder. Geolocalización.](#_apartado2)
 
 [3.	Una app del tiempo](#_apartado3)
+
+[4.	El Widget StreamBuilder](#_apartado4)
 
 
 <br>
@@ -991,5 +989,6 @@ El método recibe un valor en coma flotante con la dirección del viento, expres
   }
 ```
 
+# <a name="_apartado4"></a>4. El Widget StreamBuilder
 
-# FALTA STREAMS
+**PENDIENTE**
