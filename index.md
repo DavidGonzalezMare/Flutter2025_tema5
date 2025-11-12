@@ -123,10 +123,12 @@ Como vemos, hemos creado la clase `WidgetAsincrono`, la cual nos construye un `F
 
 De esta manera, la aplicación mostrará el texto *"Esperando respuesta..."*, y al cabo de un tiempo éste cambiará a *"Valor de retorno"*, que es el que devolvía esta función.
 
+<hr>
 
 **Podemos ver el resultado completo en el siguiente Gist:**   
 [https://dartpad.dev/embed-flutter.html?id=8a37088f2339ad57bfa749ac120bec5a](https://dartpad.dev/embed-flutter.html?id=8a37088f2339ad57bfa749ac120bec5a)
 
+<hr>
 
 ### **Indicador de Progreso**
 
@@ -183,11 +185,12 @@ return FutureBuilder(
   },
 );
 ```
-<br>
+<hr>
 
 **Podemos ver el resultado completo en el siguiente Gist:**   
 [https://dartpad.dev/embed-flutter.html?id=1e24c8784963912e6ce27c17b4a78942](https://dartpad.dev/embed-flutter.html?id=1e24c8784963912e6ce27c17b4a78942)
 
+<hr>
 <br>
 
 ### **ConnectionState**
@@ -219,7 +222,7 @@ class WidgetAsincrono extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.none) {
           text = "Estat ConnectionState.none.\n Data=${snapshot.data.toString()}";
         } else if (snapshot.connectionState == ConnectionState.waiting) {
-          text = "Estat ConnectionState.Waiting.\n Esperant resposta...";
+          text = "Estat ConnectionState.Waiting.\n Esperando respuesta...";
         } else if (snapshot.connectionState == ConnectionState.done) {
           text = "Estat ConnectionState.done.\nData=${snapshot.data.toString()}";
         }
@@ -238,10 +241,12 @@ Este código nos mostrará el estado *ConnectionState.Waiting* hasta que se reci
 
 Si reemplazamos la obtención del future per `future:null` (la línea comentada y comentamos la línea `future:funcioAsincrona()`), veremos que el estado se nos muestra como `None`, ya que no iniciamos la conexión en ningún momento.
 
+<hr>
+
 **Podemos ver el resultado completo en el siguiente Gist:**   
 [https://dartpad.dev/embed-flutter.html?id=d1447b56b5c46d0ca2fabb45d964bf3f](https://dartpad.dev/embed-flutter.html?id=d1447b56b5c46d0ca2fabb45d964bf3f)
 
-
+<hr>
 <br>
 <br>
 
@@ -310,7 +315,7 @@ android.enableJetifier=true
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- Per obtindre la ubicació en temps real encara que l'app estiga en segon pla -->
+    <!-- Para obtener la ubicación en tiempo real aunque la app esté en segundo plano -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
 
@@ -742,9 +747,11 @@ Observemos algunos detalles:
   
 - El widget que se construye cuando se resuelve este futuro es una columna (`Column`), centrada (`Center`) y con 24 puntos de margen (`Padding`), con `EdgeInsets.all(24.0))`. Esta columna contendrá dos filas: la primera con un texto con las coordenadas, a modo de cabecera, y la segunda, el widget personalizado `WidgetClima`.
 
----
+<hr>
+
 Existen varios servicios web de geocodificación (OpenCage Geocoder, Geonames, Google Places, Mapbox), con los que podríamos obtener el nombre de la población a partir de las coordenadas geográficas, para mostrar éste en lugar de las coordenadas. No obstante, se trata de servicios que requieren de registro previo y autenticación, aunque se utilice un plan gratuito.
----
+
+<hr>
 
 <br>
 
