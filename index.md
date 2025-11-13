@@ -995,7 +995,11 @@ El método recibe un valor en coma flotante con la dirección del viento, expres
     ]);
   }
 ```
+<br>
+<br>
 
 # <a name="_apartado4"></a>4. El Widget StreamBuilder
 
-**PENDIENTE**
+Como se ha dicho en clase el StreamBuilder no entra para esta primera evaluación pero aquí tenéis un enlace en el que se explica ya:
+
+[El Widget StreamBuilder](./streambuilder.md)
